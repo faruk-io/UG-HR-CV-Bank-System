@@ -1,0 +1,163 @@
+<div class="page">
+  <header class="head">
+    <div>
+      <h1>Activity Log</h1>
+      <p class="sub">
+        Every action recorded in the system, newest first. The list opens on the last 7 days; pick another range or
+        <strong>All time</strong> to see older entries. Times are local server time.
+      </p>
+    </div>
+    @if (log(); as data) {
+      <div class="exports no-print">
+        <button class="btn" type="button" (click)="print()">
+          <app-icon name="print" />
+          <span>Print</span>
+        </button>
+        <button class="btn" type="button" [disabled]="exporting()" (click)="downloadExcel()">
+          <app-icon name="table" />
+          <span>{{ exporting() ? 'Preparing…' : 'Excel' }}</span>
+        </button>
+        <button class="btn btn-primary" type="button" [disabled]="exporting()" (click)="downloadPdf()">
+          <app-icon name="pdf" />
+          <span>{{ exporting() ? 'Preparing…' : 'PDF' }}</span>
+        </button>
+      </div>
+    }
+  </header>
+
+  <section class="surface filters no-print">
+    <div class="field narrow">
+      <label for="dateFrom">From</label>
+      <input
+        id="dateFrom"
+        type="date"
+        [ngModel]="q.dateFrom"
+        (ngModelChange)="patch({ dateFrom: $event || null })"
+      />
+    </div>
+
+    <div class="field narrow">
+      <label for="dateTo">To</label>
+      <input
+        id="dateTo"
+        type="date"
+        [ngModel]="q.dateTo"
+        (ngModelChange)="patch({ dateTo: $event || null })"
+      />
+    </div>
+
+    <div class="field">
+      <label for="actor">User</label>
+      <select id="actor" [ngModel]="q.actor" (ngModelChange)="patch({ actor: $event })">
+        <option [ngValue]="null">All</option>
+        @for (name of options().actors; track name) {
+          <option [ngValue]="name">{{ name }}</option>
+        }
+      </select>
+    </div>
+
+    <div class="field">
+      <label for="action">Action</label>
+      <select id="action" [ngModel]="q.action" (ngModelChange)="patch({ action: $event })">
+        <option [ngValue]="null">All</option>
+        @for (name of options().actions; track name) {
+          <option [ngValue]="name">{{ name }}</option>
+        }
+      </select>
+    </div>
+
+    <div class="field">
+      <label for="entityType">Record type</label>
+      <select id="entityType" [ngModel]="q.entityType" (ngModelChange)="patch({ entityType: $event })">
+        <option [ngValue]="null">All</option>
+        @for (name of options().entityTypes; track name) {
+          <option [ngValue]="name">{{ name }}</option>
+        }
+      </select>
+    </div>
+
+    <div class="field search">
+      <label for="search">Search</label>
+      <input
+        id="search"
+        type="search"
+        [ngModel]="q.search"
+        (ngModelChange)="onSearch($event)"
+        placeholder="Details, user, action or record id"
+      />
+    </div>
+
+    <div class="actions">
+      <button class="btn" type="button" [class.on]="isPreset(0)" (click)="preset(0)">Today</button>
+      <button class="btn" type="button" [class.on]="isPreset(7)" (click)="preset(7)">Last 7 days</button>
+      <button class="btn" type="button" [class.on]="isPreset(30)" (click)="preset(30)">Last 30 days</button>
+      <button class="btn" type="button" [class.on]="isAllTime()" (click)="showAllTime()">All time</button>
+      <button class="btn" type="button" [disabled]="!hasFilters()" (click)="clearFilters()">
+        <app-icon name="x" /><span>Reset view</span>
+      </button>
+    </div>
+  </section>
+
+  @if (error(); as message) {
+    <p class="banner danger">{{ message }}</p>
+  }
+
+  @if (loading()) {
+    <p class="note">Reading the activity log…</p>
+  }
+
+  @if (log(); as data) {
+    <div class="print-head">
+      <strong>{{ data.title }}</strong>
+      <span>{{ data.filterSummary }} · {{ rangeLabel() }} of {{ rowCount() }} row(s)</span>
+    </div>
+
+    <section class="surface">
+      <table class="table">
+        <thead>
+          <tr>
+            <th class="idx">#</th>
+            @for (column of data.columns; track column.key) {
+              <th>{{ column.label }}</th>
+            }
+          </tr>
+        </thead>
+        <tbody>
+          @for (row of pageRows(); track $index) {
+            <tr>
+              <td class="idx">{{ firstRow() + $index }}</td>
+              @for (column of data.columns; track column.key) {
+                <td [class]="align(column)">{{ cell(column, row[$index]) }}</td>
+              }
+            </tr>
+          } @empty {
+            <tr>
+              <td [attr.colspan]="data.columns.length + 1" class="empty">
+                {{ loading() ? 'Loading…' : 'No activity matches the current filters.' }}
+              </td>
+            </tr>
+          }
+        </tbody>
+      </table>
+
+      <div class="pager no-print">
+        <label for="pageSize">Rows per page</label>
+        <select id="pageSize" [ngModel]="pageSize()" (ngModelChange)="setPageSize($event)">
+          @for (size of pageSizes; track size) {
+            <option [ngValue]="size">{{ size }}</option>
+          }
+        </select>
+        <button class="btn" type="button" [disabled]="page() === 0" (click)="stepPage(-1)">Previous</button>
+        <span class="place">Page {{ pageNumber() }} of {{ pageCount() }}</span>
+        <button class="btn" type="button" [disabled]="page() + 1 >= pageCount()" (click)="stepPage(1)">Next</button>
+      </div>
+
+      <footer class="summary">
+        <span>{{ rowCount() }} row(s) matched · {{ rangeLabel() }} · {{ data.filterSummary }}</span>
+        @if (data.truncated) {
+          <span class="warn">Only the first 2000 rows are shown — narrow the filters for a complete list.</span>
+        }
+      </footer>
+    </section>
+  }
+</div>

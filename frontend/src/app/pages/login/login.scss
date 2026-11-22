@@ -1,0 +1,231 @@
+:host {
+  display: block;
+  min-height: 100vh;
+  background:
+    radial-gradient(1000px 480px at 12% -10%, #20406e 0%, transparent 60%),
+    radial-gradient(900px 420px at 100% 110%, #1b3a63 0%, transparent 55%),
+    var(--sidebar-background);
+}
+
+.login {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  min-height: 100vh;
+  padding: 1.5rem;
+}
+
+.card {
+  display: grid;
+  grid-template-columns: 1.05fr 1fr;
+  width: 100%;
+  max-width: 54rem;
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: 16px;
+  box-shadow: 0 20px 50px rgb(6 18 38 / 38%);
+  overflow: hidden;
+}
+
+.brand {
+  padding: 2.2rem 2rem;
+  background: linear-gradient(160deg, #f7f9fd 0%, #eaf0fa 100%);
+  border-right: 1px solid var(--border);
+
+  .brand-logo {
+    display: block;
+    height: 2.9rem;
+    width: auto;
+    margin-bottom: 1.6rem;
+  }
+
+  h2 {
+    margin: 0;
+    font-size: 1.2rem;
+    line-height: 1.35;
+    color: var(--heading);
+  }
+
+  .lede {
+    margin: 0.5rem 0 1.4rem;
+    font-size: 0.875rem;
+    line-height: 1.55;
+    color: #55657e;
+  }
+
+  .points {
+    margin: 0;
+    padding: 0;
+    list-style: none;
+    display: flex;
+    flex-direction: column;
+    gap: 0.6rem;
+
+    li {
+      display: flex;
+      align-items: center;
+      gap: 0.55rem;
+      font-size: 0.875rem;
+      color: #3d4c64;
+    }
+
+    app-icon {
+      color: var(--accent);
+    }
+  }
+}
+
+.pane {
+  padding: 2.2rem 2rem 2rem;
+
+  h1 {
+    margin: 0;
+    font-size: 1.35rem;
+    color: var(--heading);
+  }
+
+  .subtitle {
+    margin: 0.35rem 0 1.7rem;
+    font-size: 0.875rem;
+    color: var(--text-muted);
+  }
+
+  form {
+    display: flex;
+    flex-direction: column;
+    gap: 0.9rem;
+  }
+
+  .field {
+    display: flex;
+    flex-direction: column;
+    gap: 0.3rem;
+
+    label {
+      font-size: 0.8rem;
+      font-weight: 600;
+      letter-spacing: 0.01em;
+      color: #46536b;
+    }
+  }
+
+  .control {
+    position: relative;
+    display: flex;
+    align-items: center;
+
+    .lead {
+      position: absolute;
+      left: 0.65rem;
+      color: #93a2ba;
+      pointer-events: none;
+      transition: color 120ms ease;
+    }
+
+    &:focus-within .lead {
+      color: var(--accent);
+    }
+
+    input {
+      width: 100%;
+      padding: 0.6rem 0.7rem 0.6rem 2.15rem;
+      border: 1px solid var(--border-strong);
+      border-radius: var(--radius-sm);
+      font: inherit;
+      font-size: 0.9375rem;
+      color: var(--text);
+      transition:
+        border-color 120ms ease,
+        box-shadow 120ms ease;
+
+      &::placeholder {
+        color: #a7b3c6;
+      }
+
+      &:focus {
+        outline: none;
+        border-color: var(--accent);
+        box-shadow: 0 0 0 3px rgb(37 99 235 / 16%);
+      }
+    }
+  }
+
+  button {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 0.5rem;
+    margin-top: 0.35rem;
+    padding: 0.68rem;
+    border: 0;
+    border-radius: var(--radius-sm);
+    background: var(--accent);
+    color: #fff;
+    font-size: 0.9375rem;
+    font-weight: 600;
+    cursor: pointer;
+    transition: background-color 120ms ease;
+
+    &:hover:not(:disabled) {
+      background: var(--accent-strong);
+    }
+
+    &:focus-visible {
+      outline: 2px solid var(--accent);
+      outline-offset: 2px;
+    }
+  }
+
+  button:disabled {
+    opacity: 0.6;
+    cursor: progress;
+  }
+
+  .error {
+    margin: 0;
+    padding: 0.55rem 0.7rem;
+    border-left: 3px solid var(--danger);
+    border-radius: var(--radius-sm);
+    background: var(--danger-soft);
+    color: var(--danger);
+    font-size: 0.8125rem;
+  }
+
+  .foot {
+    margin: 1.5rem 0 0;
+    padding-top: 1rem;
+    border-top: 1px dashed var(--border);
+    font-size: 0.78rem;
+    line-height: 1.55;
+    color: var(--text-muted);
+  }
+}
+
+@media (max-width: 760px) {
+  .card {
+    grid-template-columns: 1fr;
+    max-width: 26rem;
+  }
+
+  .brand {
+    border-right: 0;
+    border-bottom: 1px solid var(--border);
+    padding: 1.6rem 1.5rem;
+
+    .points {
+      display: none;
+    }
+
+    .brand-logo {
+      margin-bottom: 1rem;
+    }
+
+    .lede {
+      margin-bottom: 0;
+    }
+  }
+
+  .pane {
+    padding: 1.6rem 1.5rem 1.8rem;
+  }
+}

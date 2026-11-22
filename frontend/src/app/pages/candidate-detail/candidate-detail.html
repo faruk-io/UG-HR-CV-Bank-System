@@ -1,0 +1,244 @@
+@if (candidate(); as c) {
+  <div class="page">
+    <header class="head">
+      <div>
+        <h1>{{ c.name }}</h1>
+        <p class="sub">
+          <span class="code">{{ c.candidateCode }}</span>
+          · added {{ c.createdAtUtc | date: 'mediumDate' }}
+          @if (c.createdByName) {
+            by {{ c.createdByName }}
+          }
+          @if (c.updatedAtUtc) {
+            · last edited {{ c.updatedAtUtc | date: 'mediumDate' }}
+          }
+        </p>
+      </div>
+      <div class="head-actions">
+        <label class="status-picker">
+          <span>Status</span>
+          <select [ngModel]="c.status" (ngModelChange)="changeStatus($event)" [disabled]="!auth.can('candidate.update')">
+            @for (option of statuses; track option.value) {
+              <option [ngValue]="option.value">{{ option.label }}</option>
+            }
+          </select>
+        </label>
+        @if (auth.can('candidate.update')) {
+          <a class="btn" [routerLink]="['/candidates', c.id, 'edit']">
+            <app-icon name="edit" />
+            <span>Edit</span>
+          </a>
+        }
+        <a class="btn" [routerLink]="['/candidates', c.id, 'summary']">
+          <app-icon name="print" />
+          <span>Print Summary</span>
+        </a>
+        @if (auth.can('candidate.delete')) {
+          <button class="btn danger" type="button" (click)="deleteCandidate()">
+            <app-icon name="trash" />
+            <span>Delete</span>
+          </button>
+        }
+        <a class="btn" routerLink="/candidates">
+          <app-icon name="back" />
+          <span>Back</span>
+        </a>
+      </div>
+    </header>
+
+    @if (error(); as message) {
+      <p class="banner danger">{{ message }}</p>
+    }
+    @if (notice(); as message) {
+      <p class="banner ok">{{ message }}</p>
+    }
+
+    <div class="columns">
+      <section class="surface block">
+        <h2>A. Candidate Information</h2>
+        <dl class="rows">
+          <div><dt>Candidate Name</dt><dd>{{ c.name }}</dd></div>
+          <div><dt>Mobile Number</dt><dd>{{ c.mobileNumber ?? '—' }}</dd></div>
+          <div><dt>Email Address</dt><dd>{{ c.email ?? '—' }}</dd></div>
+          <div><dt>Date of Birth</dt><dd>{{ shortDate(c.dateOfBirth) }}</dd></div>
+          <div><dt>Present Address</dt><dd>{{ c.presentAddress ?? '—' }}</dd></div>
+          <div><dt>Remarks / Comments</dt><dd>{{ c.remarks ?? '—' }}</dd></div>
+        </dl>
+      </section>
+
+      <section class="surface block">
+        <h2>B. Job &amp; Interview Information</h2>
+        <dl class="rows">
+          <div><dt>Applied Position</dt><dd>{{ c.appliedPosition ?? '—' }}</dd></div>
+          <div><dt>Concern Name</dt><dd>{{ c.concern ?? '—' }}</dd></div>
+          <div><dt>Interview Status</dt><dd>{{ label }}</dd></div>
+          <div><dt>Interview Rounds Recorded</dt><dd>{{ c.interviewCount }}</dd></div>
+        </dl>
+      </section>
+
+      <section class="surface block">
+        <h2>C. Current Employment</h2>
+        <dl class="rows">
+          <div><dt>Current Organization</dt><dd>{{ c.currentOrganization ?? '—' }}</dd></div>
+          <div><dt>Current Designation</dt><dd>{{ c.currentDesignation ?? '—' }}</dd></div>
+          <div><dt>Duration in Current Organization</dt><dd>{{ c.durationInCurrentOrganization ?? '—' }}</dd></div>
+          <div><dt>Total Years of Experience</dt><dd>{{ c.totalYearsOfExperience ?? '—' }}</dd></div>
+          <div><dt>Present Salary</dt><dd>{{ c.presentSalary ?? '—' }}</dd></div>
+          <div><dt>Expected Salary</dt><dd>{{ c.expectedSalary ?? '—' }}</dd></div>
+          <div><dt>Notice Period</dt><dd>{{ c.noticePeriod ?? '—' }}</dd></div>
+        </dl>
+      </section>
+
+    </div>
+
+    <section class="surface block documents">
+      <h2>D. CV &amp; Documents</h2>
+
+      @if (auth.can('cv.upload')) {
+        <div class="upload">
+          <div class="field">
+            <label for="cv-file">File (PDF, DOC or DOCX · max {{ settings.display().maxUploadMb }} MB)</label>
+            <input id="cv-file" type="file" accept=".pdf,.doc,.docx" (change)="onFilePicked($event)" />
+          </div>
+          <div class="field">
+            <label for="doc-category">Document type</label>
+            <select id="doc-category" [ngModel]="category()" (ngModelChange)="category.set($event)">
+              <option [ngValue]="categories.cv">CV</option>
+              <option [ngValue]="categories.completedEvaluationForm">Completed Evaluation Form</option>
+              <option [ngValue]="categories.other">Other document</option>
+            </select>
+          </div>
+          <div class="field">
+            <label for="doc-remarks">Remarks (optional)</label>
+            <input id="doc-remarks" [ngModel]="remarks()" (ngModelChange)="remarks.set($event)" />
+          </div>
+          <div class="field checkbox">
+            <label for="replace">
+              <input
+                id="replace"
+                type="checkbox"
+                [checked]="replaceCurrent()"
+                (change)="replaceCurrent.set($any($event.target).checked)"
+              />
+              Replace the current {{ categoryLabel(category()) }} (previous copy stays in history)
+            </label>
+          </div>
+          <div class="field">
+            <button
+              class="btn btn-primary"
+              type="button"
+              [disabled]="!file() || uploading()"
+              (click)="upload()"
+            >
+              {{ uploading() ? 'Uploading…' : 'Upload' }}
+            </button>
+          </div>
+          @if (file(); as picked) {
+            <p class="picked">Selected: {{ picked.name }} ({{ formatBytes(picked.size) }})</p>
+          }
+        </div>
+      } @else {
+        <p class="note">You do not have permission to upload documents.</p>
+      }
+
+      @if (c.documents.length === 0) {
+        <p class="note">No document uploaded for this candidate yet.</p>
+      } @else {
+        <table class="table">
+          <thead>
+            <tr>
+              <th>Type</th>
+              <th>File</th>
+              <th>Size</th>
+              <th>Uploaded</th>
+              <th>By</th>
+              <th>State</th>
+              <th></th>
+            </tr>
+          </thead>
+          <tbody>
+            @for (doc of c.documents; track doc.id) {
+              <tr [class.old]="!doc.isCurrent">
+                <td>{{ categoryLabel(doc.category) }}</td>
+                <td>{{ doc.fileName }} @if (doc.remarks) { <small>· {{ doc.remarks }}</small> }</td>
+                <td>{{ formatBytes(doc.sizeBytes) }}</td>
+                <td>{{ doc.uploadedAtUtc | date: 'mediumDate' }}</td>
+                <td>{{ doc.uploadedByName ?? '—' }}</td>
+                <td>{{ doc.isCurrent ? 'Current' : 'History' }}</td>
+                <td class="row-actions">
+                  @if (auth.can('cv.download')) {
+                    <button class="btn" type="button" (click)="view(doc)">View</button>
+                    <button class="btn" type="button" (click)="download(doc)">Download</button>
+                  }
+                  @if (auth.can('document.manage') && doc.isCurrent) {
+                    <button class="btn danger" type="button" (click)="withdraw(doc)">Withdraw</button>
+                  }
+                </td>
+              </tr>
+            }
+          </tbody>
+        </table>
+      }
+    </section>
+
+    @if (auth.can('evaluation.view')) {
+      <section class="surface block history">
+        <h2>E. Interview History</h2>
+
+        @if (history().length === 0) {
+          <p class="note">No interview evaluation recorded for this candidate yet.</p>
+        } @else {
+          <div class="scroll">
+            <table class="table history-table">
+              <thead>
+                <tr>
+                  <th>#</th>
+                  <th>Date</th>
+                  <th>Position applied</th>
+                  <th>Rating</th>
+                  <th>Status</th>
+                  <th>Decision</th>
+                  <th>Final decision</th>
+                  <th>Recommendation</th>
+                  <th>Evaluators</th>
+                  <th>Form</th>
+                  <th>Filled by</th>
+                  <th></th>
+                </tr>
+              </thead>
+              <tbody>
+                @for (row of history(); track row.id) {
+                  <tr>
+                    <td class="num">{{ row.interviewNumber }}</td>
+                    <td>{{ row.interviewDate | date: 'mediumDate' }}</td>
+                    <td>
+                      {{ row.appliedPosition ?? '—' }}
+                      <small>· {{ row.concern ?? '—' }}</small>
+                    </td>
+                    <td class="num">{{ row.totalRating }} / {{ row.maxRating }}</td>
+                    <td><span class="badge">{{ statusLabel(row.status) }}</span></td>
+                    <td><span class="badge" [attr.data-decision]="row.decision">{{ decisionLabel(row.decision) }}</span></td>
+                    <td>{{ finalLine(row) }}</td>
+                    <td class="wide">{{ row.recommendation ?? '—' }}</td>
+                    <td class="wide">{{ row.evaluatorNames ?? '—' }}</td>
+                    <td>{{ row.hasScannedForm ? 'Scanned' : '—' }}</td>
+                    <td>{{ row.createdByName ?? '—' }}</td>
+                    <td class="row-actions">
+                      <a class="btn" [routerLink]="['/evaluations', row.id]">Open</a>
+                      <a class="btn" [routerLink]="['/evaluations', row.id, 'print']">Form</a>
+                    </td>
+                  </tr>
+                }
+              </tbody>
+            </table>
+          </div>
+        }
+      </section>
+    }
+  </div>
+} @else if (loading()) {
+  <p class="banner">Loading candidate record…</p>
+} @else {
+  <p class="banner danger">{{ error() || 'Candidate not found.' }}</p>
+  <a class="btn" routerLink="/candidates"><app-icon name="back" /><span>Back to CV Bank</span></a>
+}

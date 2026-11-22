@@ -1,0 +1,18 @@
+# .NET
+bin/
+obj/
+*.user
+
+# Uploaded candidate documents (never commit real CVs)
+backend/CvBank.Api/App_Data/
+
+# Angular
+node_modules/
+frontend/dist/
+frontend/.angular/
+
+# IDE / OS
+.vs/
+.vscode/
+Thumbs.db
+.DS_Store

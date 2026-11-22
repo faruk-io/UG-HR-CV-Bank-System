@@ -1,0 +1,48 @@
+<main class="login">
+  <section class="card">
+    <aside class="brand">
+      <img class="brand-logo" src="/images/logo-full.svg" alt="Union Group" />
+      <h2>Union Group CV Bank &amp; Interview Evaluation</h2>
+      <p class="lede">One place for candidate CVs, the official interview form and the reports HR needs.</p>
+      <ul class="points">
+        <li><app-icon name="file-text" /><span>CV bank with document history</span></li>
+        <li><app-icon name="clipboard" /><span>Official A4 interview evaluation form</span></li>
+        <li><app-icon name="chart" /><span>Three consolidated reports, Excel &amp; PDF</span></li>
+      </ul>
+    </aside>
+
+    <div class="pane">
+      <h1>Sign in</h1>
+      <p class="subtitle">HR Department — use the user name and password given to you.</p>
+
+      <form [formGroup]="form" (ngSubmit)="submit()">
+        <div class="field">
+          <label for="userName">User name</label>
+          <span class="control">
+            <app-icon class="lead" name="user" />
+            <input id="userName" formControlName="userName" autocomplete="username" placeholder="e.g. salman" />
+          </span>
+        </div>
+
+        <div class="field">
+          <label for="password">Password</label>
+          <span class="control">
+            <app-icon class="lead" name="lock" />
+            <input id="password" type="password" formControlName="password" autocomplete="current-password" />
+          </span>
+        </div>
+
+        @if (errorMessage()) {
+          <p class="error" role="alert">{{ errorMessage() }}</p>
+        }
+
+        <button type="submit" [disabled]="busy()">
+          <span>{{ busy() ? 'Signing in...' : 'Sign in' }}</span>
+          <app-icon name="arrow-right" />
+        </button>
+      </form>
+
+      <p class="foot">Every sign-in is recorded in the activity log. Forgot your password? Ask the system administrator to reset it.</p>
+    </div>
+  </section>
+</main>

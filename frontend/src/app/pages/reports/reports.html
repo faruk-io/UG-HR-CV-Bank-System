@@ -1,0 +1,220 @@
+<div class="page">
+  <header class="head no-print">
+    <div>
+      <h1>Reports</h1>
+      <p class="sub">Three reports — candidates, candidate groups and interviews — each exportable to Excel, PDF or print.</p>
+    </div>
+    @if (report(); as data) {
+      <div class="exports no-print">
+        <button class="btn" type="button" (click)="print()">
+          <app-icon name="print" />
+          <span>Print</span>
+        </button>
+        <button class="btn" type="button" [disabled]="exporting()" (click)="downloadExcel()">
+          <app-icon name="table" />
+          <span>{{ exporting() ? 'Preparing…' : 'Excel' }}</span>
+        </button>
+        <button class="btn btn-primary" type="button" [disabled]="exporting()" (click)="downloadPdf()">
+          <app-icon name="pdf" />
+          <span>{{ exporting() ? 'Preparing…' : 'PDF' }}</span>
+        </button>
+      </div>
+    }
+  </header>
+
+  <div class="layout">
+    <nav class="surface picker no-print" aria-label="Report list">
+      @for (item of catalog(); track item.code) {
+        <button
+          class="pick"
+          type="button"
+          [class.on]="active()?.code === item.code"
+          (click)="select(item)"
+        >
+          <app-icon class="pick-icon" [name]="iconFor(item.code)" />
+          <span>{{ item.title }}</span>
+        </button>
+      } @empty {
+        <p class="hint">Loading reports…</p>
+      }
+    </nav>
+
+    <section class="body">
+      @if (active(); as definition) {
+        <div class="caption no-print">
+          <h2>{{ definition.title }}</h2>
+          <p>{{ definition.description }}</p>
+        </div>
+
+        <section class="surface filters-card no-print">
+          <header class="filters-head">
+            <h3>Filters</h3>
+            <button class="btn" type="button" [disabled]="!hasFilters()" (click)="clearFilters()">
+              <app-icon name="x" /><span>Clear filters</span>
+            </button>
+          </header>
+
+          @if (show('dateRange')) {
+            <div class="field narrow">
+              <label for="dateFrom">From</label>
+              <input id="dateFrom" type="date" [ngModel]="q.dateFrom" (ngModelChange)="patch({ dateFrom: $event || null })" />
+            </div>
+            <div class="field narrow">
+              <label for="dateTo">To</label>
+              <input id="dateTo" type="date" [ngModel]="q.dateTo" (ngModelChange)="patch({ dateTo: $event || null })" />
+            </div>
+          }
+
+          @if (show('jobPosition')) {
+            <div class="field">
+              <label for="position">Applied position</label>
+              <select id="position" [ngModel]="q.jobPositionId" (ngModelChange)="patch({ jobPositionId: $event })">
+                <option [ngValue]="null">All</option>
+                @for (option of jobPositions(); track option.id) {
+                  <option [ngValue]="option.id">{{ option.name }}</option>
+                }
+              </select>
+            </div>
+          }
+
+          @if (show('concern')) {
+            <div class="field">
+              <label for="concern">Concern</label>
+              <select id="concern" [ngModel]="q.concernId" (ngModelChange)="patch({ concernId: $event })">
+                <option [ngValue]="null">All</option>
+                @for (option of concerns(); track option.id) {
+                  <option [ngValue]="option.id">{{ option.name }}</option>
+                }
+              </select>
+            </div>
+          }
+
+          @if (show('status')) {
+            <div class="field">
+              <label for="status">Candidate status</label>
+              <select id="status" [ngModel]="q.status" (ngModelChange)="patch({ status: $event })">
+                <option [ngValue]="null">All</option>
+                @for (option of statuses; track option.value) {
+                  <option [ngValue]="option.value">{{ option.label }}</option>
+                }
+              </select>
+            </div>
+          }
+
+          @if (show('cvOnFile')) {
+            <div class="field">
+              <label for="cvOnFile">CV on file</label>
+              <select id="cvOnFile" [ngModel]="q.cvOnFile" (ngModelChange)="patch({ cvOnFile: $event })">
+                @for (option of cvOnFileOptions; track option.value) {
+                  <option [ngValue]="option.value">{{ option.label }}</option>
+                }
+              </select>
+            </div>
+          }
+
+          @if (show('groupBy')) {
+            <div class="field">
+              <label for="groupBy">Group candidates by</label>
+              <select id="groupBy" [ngModel]="q.groupBy" (ngModelChange)="patch({ groupBy: $event })">
+                @for (option of groupByOptions; track option.value) {
+                  <option [ngValue]="option.value">{{ option.label }}</option>
+                }
+              </select>
+            </div>
+          }
+
+          @if (show('interviewView')) {
+            <div class="field">
+              <label for="interviewView">Show</label>
+              <select id="interviewView" [ngModel]="q.interviewView" (ngModelChange)="patch({ interviewView: $event })">
+                @for (option of interviewViewOptions; track option.value) {
+                  <option [ngValue]="option.value">{{ option.label }}</option>
+                }
+              </select>
+            </div>
+          }
+
+          @if (show('search')) {
+            <div class="field search">
+              <label for="search">Search</label>
+              <input
+                id="search"
+                type="search"
+                [ngModel]="q.search"
+                (ngModelChange)="onSearch($event)"
+                placeholder="Candidate name, code, mobile, organization or designation"
+              />
+            </div>
+          }
+        </section>
+      }
+
+      @if (error(); as message) {
+        <p class="banner danger">{{ message }}</p>
+      }
+
+      @if (loading()) {
+        <p class="note">Building the report…</p>
+      }
+
+      @if (report(); as data) {
+        <div class="print-head">
+          <div class="print-row">
+            <strong class="print-brand">Union Group CV Bank</strong>
+            <span class="print-when">{{ printedAt() }}</span>
+          </div>
+          <div class="print-row">
+            <h2>{{ data.title }}</h2>
+            <span class="print-count">{{ data.rows.length }} row(s)</span>
+          </div>
+          <p class="print-desc">{{ data.description }}</p>
+          <p class="print-filters">Filters: {{ data.filterSummary }}</p>
+        </div>
+
+        <section class="surface table-card">
+          <div class="scroll">
+            <table class="table" [class.wide]="wide()">
+              <thead>
+                <tr>
+                  <th class="idx">#</th>
+                  @for (column of data.columns; track column.key) {
+                    <th [class.num]="align(column) === 'num'">{{ column.label }}</th>
+                  }
+                </tr>
+              </thead>
+              <tbody>
+                @for (row of data.rows; track $index) {
+                  <tr>
+                    <td class="idx">{{ $index + 1 }}</td>
+                    @for (column of data.columns; track column.key) {
+                      <td [class]="classes(column)">{{ cell(column, row[$index]) }}</td>
+                    }
+                  </tr>
+                } @empty {
+                  <tr>
+                    <td [attr.colspan]="data.columns.length + 1" class="empty">
+                      No row matches the current report and filters.
+                    </td>
+                  </tr>
+                }
+              </tbody>
+            </table>
+          </div>
+
+          <footer class="summary">
+            <span class="pill">{{ data.rows.length }} row(s)</span>
+            <span class="filters-line">{{ data.filterSummary }}</span>
+            @if (wide()) {
+              <span class="scroll-hint">
+                <app-icon name="arrow-right" /><span>More columns to the right — scroll sideways</span>
+              </span>
+            }
+            @if (data.truncated) {
+              <span class="warn">Results capped at 2000 rows — narrow the filters for a complete report.</span>
+            }
+          </footer>
+        </section>
+      }
+    </section>
+  </div>
+</div>

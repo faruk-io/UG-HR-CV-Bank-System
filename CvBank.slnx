@@ -1,0 +1,5 @@
+<Solution>
+  <Folder Name="/backend/">
+    <Project Path="backend/CvBank.Api/CvBank.Api.csproj" />
+  </Folder>
+</Solution>

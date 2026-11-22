@@ -1,0 +1,185 @@
+<div class="page">
+  <header class="head">
+    <div>
+      <h1>{{ title() }}</h1>
+      <p class="sub">Fields marked * are required. Leave a field blank when it does not apply.</p>
+    </div>
+    <a class="btn" routerLink="/candidates"><app-icon name="back" /><span>Back to CV Bank</span></a>
+  </header>
+
+  @if (loading()) {
+    <p class="banner">Loading candidate record…</p>
+  }
+
+  @if (error(); as message) {
+    <p class="banner danger">{{ message }}</p>
+  }
+
+  @if (duplicates().length > 0) {
+    <section class="banner warn">
+      <strong>Possible duplicate already in the CV Bank</strong>
+      <ul>
+        @for (row of duplicates(); track row.id) {
+          <li>
+            <a class="link" [routerLink]="['/candidates', row.id]">{{ row.candidateCode }} — {{ row.name }}</a>
+            ({{ row.mobileNumber ?? 'no mobile' }}, {{ row.email ?? 'no email' }} · matched on {{ row.matchedOn }})
+          </li>
+        }
+      </ul>
+      <label class="confirm">
+        <input
+          type="checkbox"
+          [checked]="confirmDuplicate()"
+          (change)="confirmDuplicate.set($any($event.target).checked)"
+        />
+        I checked the records above and still want to save this as a new candidate.
+      </label>
+    </section>
+  }
+
+  <form [formGroup]="form" (ngSubmit)="save()">
+    <section class="surface block">
+      <h2>1. Candidate Information</h2>
+      <div class="grid">
+        <div class="field" [class.bad]="invalid('name')">
+          <label for="name">Candidate Name *</label>
+          <input id="name" formControlName="name" autocomplete="off" />
+        </div>
+        <div class="field">
+          <label for="mobile">Mobile Number</label>
+          <input id="mobile" formControlName="mobileNumber" autocomplete="off" />
+        </div>
+        <div class="field" [class.bad]="invalid('email')">
+          <label for="email">Email Address</label>
+          <input id="email" formControlName="email" autocomplete="off" />
+        </div>
+        <div class="field">
+          <label for="dob">Date of Birth</label>
+          <input id="dob" type="date" formControlName="dateOfBirth" />
+        </div>
+        <div class="field span2">
+          <label for="presentAddress">Present Address</label>
+          <textarea id="presentAddress" rows="2" formControlName="presentAddress"></textarea>
+        </div>
+      </div>
+    </section>
+
+    <section class="surface block">
+      <h2>2. Applied Position</h2>
+      <div class="grid">
+        <div class="field">
+          <label for="position">Applied Position</label>
+          <div class="with-button">
+            <select id="position" formControlName="appliedJobPositionId">
+              <option value="">— not selected —</option>
+              @for (option of jobPositions(); track option.id) {
+                <option [value]="option.id">{{ option.name }}</option>
+              }
+            </select>
+            <button class="btn" type="button" (click)="addMasterData('position')">+ New</button>
+          </div>
+        </div>
+        <div class="field">
+          <label for="concern">Concern Name</label>
+          <div class="with-button">
+            <select id="concern" formControlName="concernId">
+              <option value="">— not selected —</option>
+              @for (option of concerns(); track option.id) {
+                <option [value]="option.id">{{ option.name }}</option>
+              }
+            </select>
+            <button class="btn" type="button" (click)="addMasterData('concern')">+ New</button>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <section class="surface block">
+      <h2>3. Current Employment</h2>
+      <div class="grid">
+        <div class="field">
+          <label for="organization">Current Organization</label>
+          <input id="organization" formControlName="currentOrganization" />
+        </div>
+        <div class="field">
+          <label for="designation">Current Designation</label>
+          <input id="designation" formControlName="currentDesignation" />
+        </div>
+        <div class="field">
+          <label for="duration">Duration in Current Organization</label>
+          <input id="duration" formControlName="durationInCurrentOrganization" placeholder="e.g. 3 years 2 months" />
+        </div>
+        <div class="field">
+          <label for="experience">Total Years of Experience</label>
+          <input id="experience" type="number" min="0" max="60" step="0.5" formControlName="totalYearsOfExperience" />
+        </div>
+        <div class="field">
+          <label for="presentSalary">Present Salary</label>
+          <input id="presentSalary" type="number" min="0" step="1000" formControlName="presentSalary" />
+        </div>
+        <div class="field">
+          <label for="expectedSalary">Expected Salary</label>
+          <input id="expectedSalary" type="number" min="0" step="1000" formControlName="expectedSalary" />
+        </div>
+        <div class="field">
+          <label for="notice">Notice Period</label>
+          <input id="notice" formControlName="noticePeriod" placeholder="e.g. 30 days" />
+        </div>
+      </div>
+    </section>
+
+    <section class="surface block">
+      <h2>4. Interview Status</h2>
+      <div class="grid">
+        <div class="field">
+          <label for="status">Interview Status</label>
+          <select id="status" formControlName="status">
+            @for (option of statuses; track option.value) {
+              <option [value]="option.value">{{ option.label }}</option>
+            }
+          </select>
+        </div>
+        <div class="field span2" [class.bad]="invalid('remarks')">
+          <label for="remarks">Remarks / Comments</label>
+          <textarea id="remarks" rows="3" maxlength="1000" formControlName="remarks"
+            placeholder="Anything worth remembering about this candidate"></textarea>
+          <small class="hint">
+            {{ invalid('remarks') ? 'Keep this under 1000 characters.' : 'Optional. Shows on the profile, the printed summary and the candidate reports.' }}
+          </small>
+        </div>
+      </div>
+    </section>
+
+    @if (!isEdit()) {
+      <section class="surface block">
+        <h2>5. Upload CV</h2>
+        <div class="grid">
+          <div class="field span2">
+            <label for="cv-file">CV file (PDF, DOC or DOCX · max {{ settings.display().maxUploadMb }} MB)</label>
+            <input id="cv-file" type="file" accept=".pdf,.doc,.docx" (change)="onCvPicked($event)" />
+            @if (cvFile(); as file) {
+              <small class="hint selected-file">
+                Selected: {{ file.name }} ({{ (file.size / 1024 / 1024).toFixed(2) }} MB)
+                <button class="btn" type="button" (click)="clearCv()">Remove</button>
+              </small>
+            } @else {
+              <small class="hint">Optional. The CV is uploaded automatically as soon as the candidate is saved.</small>
+            }
+          </div>
+        </div>
+      </section>
+    }
+
+    <footer class="form-actions">
+      <button class="btn btn-primary" type="submit" [disabled]="saving()">
+        <app-icon name="check" />
+        <span>{{ saving() ? 'Saving…' : isEdit() ? 'Save changes' : 'Save candidate' }}</span>
+      </button>
+      <a class="btn" routerLink="/candidates">
+        <app-icon name="x" />
+        <span>Cancel</span>
+      </a>
+      <span class="hint">{{ isEdit() ? 'CV file upload is available on the candidate page after saving.' : 'If a CV file is selected above, it is uploaded together with the candidate.' }}</span>
+    </footer>
+  </form>
+</div>

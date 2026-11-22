@@ -1,0 +1,257 @@
+<div class="toolbar no-print">
+  <a class="btn" routerLink="/candidates"><app-icon name="back" /><span>Back to CV Bank</span></a>
+  @if (summary()) {
+    <a class="btn" [routerLink]="['/candidates', summary()?.candidateId]"><app-icon name="user" /><span>Candidate profile</span></a>
+    <button class="btn btn-primary" type="button" (click)="print()"><app-icon name="print" /><span>Print Summary</span></button>
+  }
+</div>
+
+@if (error()) {
+  <p class="banner danger no-print">{{ error() }}</p>
+}
+
+@if (loading()) {
+  <p class="surface note">Loading candidate summary…</p>
+}
+
+@if (summary(); as s) {
+  <article class="sheet" [class.a4]="true">
+    <header class="doc-head">
+      <div>
+        <h1>Candidate Summary</h1>
+        <p class="org">{{ settings.display().companyName }} · Interview Evaluation Management System</p>
+        @if (settings.display().companyAddress; as address) {
+          <p class="org">{{ address }}</p>
+        }
+      </div>
+      <div class="meta">
+        <div><span>Candidate Code</span><strong>{{ s.candidateCode }}</strong></div>
+        <div><span>Generated</span><strong>{{ s.generatedAtUtc | date: 'dd MMM yyyy, HH:mm' }}</strong></div>
+      </div>
+    </header>
+
+    <section class="block">
+      <h2>A. Candidate Information</h2>
+      <table class="pairs">
+        <tbody>
+          <tr>
+            <th>Candidate Name</th>
+            <td>{{ s.candidate.name }}</td>
+            <th>Mobile Number</th>
+            <td>{{ s.candidate.mobileNumber || '-' }}</td>
+          </tr>
+          <tr>
+            <th>Email Address</th>
+            <td>{{ s.candidate.email || '-' }}</td>
+            <th>Date of Birth</th>
+            <td>{{ s.candidate.dateOfBirth ? (s.candidate.dateOfBirth | date: 'mediumDate') : '-' }}</td>
+          </tr>
+          <tr>
+            <th>Present Address</th>
+            <td colspan="3">{{ s.candidate.presentAddress || '-' }}</td>
+          </tr>
+          <tr>
+            <th>Remarks / Comments</th>
+            <td colspan="3">{{ s.candidate.remarks || '-' }}</td>
+          </tr>
+        </tbody>
+      </table>
+    </section>
+
+    <section class="block">
+      <h2>B. Job &amp; Interview Information</h2>
+      <table class="pairs">
+        <tbody>
+          <tr>
+            <th>Applied Position</th>
+            <td>{{ s.jobInterview.appliedPosition || '-' }}</td>
+            <th>Concern Name</th>
+            <td>{{ s.jobInterview.concern || '-' }}</td>
+          </tr>
+          <tr>
+            <th>Interview Date</th>
+            <td>
+              {{ s.jobInterview.interviewDate ? (s.jobInterview.interviewDate | date: 'mediumDate') : 'Not scheduled' }}
+            </td>
+            <th>Interview Status</th>
+            <td>{{ s.jobInterview.interviewStatus }}</td>
+          </tr>
+          <tr>
+            <th>Interview Number</th>
+            <td>{{ s.jobInterview.interviewNumber ?? '-' }}</td>
+            <th>Final Interview Decision</th>
+            <td>{{ s.jobInterview.finalDecision || '-' }}</td>
+          </tr>
+        </tbody>
+      </table>
+    </section>
+
+    <section class="block">
+      <h2>C. Current Employment Information</h2>
+      <table class="pairs">
+        <tbody>
+          <tr>
+            <th>Current Organization</th>
+            <td>{{ s.employment.currentOrganization || '-' }}</td>
+            <th>Current Designation</th>
+            <td>{{ s.employment.currentDesignation || '-' }}</td>
+          </tr>
+          <tr>
+            <th>Duration in Current Org.</th>
+            <td>{{ s.employment.durationInCurrentOrganization || '-' }}</td>
+            <th>Total Experience</th>
+            <td>{{ s.employment.totalYearsOfExperience != null ? s.employment.totalYearsOfExperience + ' yr' : '-' }}</td>
+          </tr>
+          <tr>
+            <th>Present Salary</th>
+            <td>{{ s.employment.presentSalary != null ? s.employment.presentSalary : '-' }}</td>
+            <th>Expected Salary</th>
+            <td>{{ s.employment.expectedSalary != null ? s.employment.expectedSalary : '-' }}</td>
+          </tr>
+          <tr>
+            <th>Notice Period</th>
+            <td colspan="3">{{ s.employment.noticePeriod || '-' }}</td>
+          </tr>
+        </tbody>
+      </table>
+    </section>
+
+    <section class="block">
+      <h2>D. Interview Evaluation Information</h2>
+      @if (s.evaluation; as ev) {
+        <table class="pairs">
+          <tbody>
+            <tr>
+              <th>Interview</th>
+              <td>No. {{ ev.interviewNumber }} · {{ ev.interviewDate | date: 'mediumDate' }}</td>
+              <th>Total Rating</th>
+              <td><strong>{{ ev.totalRating }}</strong> out of {{ ev.maxRating }}</td>
+            </tr>
+          </tbody>
+        </table>
+
+        <table class="table ratings">
+          <thead>
+            <tr>
+              <th>Dimension</th>
+              <th class="num">Rating</th>
+              <th>Dimension</th>
+              <th class="num">Rating</th>
+            </tr>
+          </thead>
+          <tbody>
+            @for (line of ratingPairs(ev.ratings); track line.left.dimension) {
+              <tr>
+                <td>{{ line.left.dimension }}</td>
+                <td class="num">{{ line.left.rating }} / {{ line.left.maxRating }}</td>
+                @if (line.right) {
+                  <td>{{ line.right.dimension }}</td>
+                  <td class="num">{{ line.right.rating }} / {{ line.right.maxRating }}</td>
+                } @else {
+                  <td></td>
+                  <td></td>
+                }
+              </tr>
+            }
+          </tbody>
+        </table>
+
+        <table class="pairs">
+          <tbody>
+            <tr>
+              <th>Evaluator Findings</th>
+              <td colspan="3">{{ ev.evaluatorFindings || '-' }}</td>
+            </tr>
+            <tr>
+              <th>Recommendation</th>
+              <td colspan="3">{{ ev.recommendation || '-' }}</td>
+            </tr>
+            <tr>
+              <th>Final Decision</th>
+              <td>{{ ev.decision }}</td>
+              <th>Designation Fixed</th>
+              <td>{{ ev.designationFixed || '-' }}</td>
+            </tr>
+            <tr>
+              <th>Salary Fixed</th>
+              <td>{{ ev.salaryFixed != null ? ev.salaryFixed : '-' }}</td>
+              <th>Grade</th>
+              <td>{{ ev.grade || '-' }}</td>
+            </tr>
+            <tr>
+              <th>Date of Joining (DOJ)</th>
+              <td>{{ ev.dateOfJoining ? (ev.dateOfJoining | date: 'mediumDate') : '-' }}</td>
+              <th></th>
+              <td></td>
+            </tr>
+          </tbody>
+        </table>
+      } @else {
+        <p class="none">No interview evaluation recorded for this candidate yet.</p>
+      }
+    </section>
+
+    <section class="block">
+      <h2>E. CV Document</h2>
+      @if (s.cvDocuments.length) {
+        <table class="table docs">
+          <thead>
+            <tr>
+              <th>File name</th>
+              <th>Uploaded</th>
+              <th class="num">Size</th>
+              <th class="no-print">Actions</th>
+            </tr>
+          </thead>
+          <tbody>
+            @for (doc of s.cvDocuments; track doc.documentId) {
+              <tr>
+                <td>{{ doc.fileName }}</td>
+                <td>{{ doc.uploadedAtUtc | date: 'mediumDate' }}</td>
+                <td class="num">{{ formatBytes(doc.sizeBytes) }}</td>
+                <td class="row-actions no-print">
+                  <button class="btn" type="button" (click)="openCv(doc.documentId)">View</button>
+                  <button class="btn" type="button" (click)="downloadCv(doc.documentId, doc.fileName)">Download</button>
+                </td>
+              </tr>
+            }
+          </tbody>
+        </table>
+
+        @if (cvPreview(); as url) {
+          <div class="cv-view no-print">
+            <iframe [src]="url" title="CV preview" class="cv-frame"></iframe>
+          </div>
+        }
+      } @else {
+        <p class="none">No CV document is attached to this candidate.</p>
+      }
+
+      @if (s.otherDocuments.length) {
+        <table class="table docs extra">
+          <thead>
+            <tr>
+              <th>Other attached documents</th>
+              <th>Uploaded</th>
+              <th class="num">Size</th>
+            </tr>
+          </thead>
+          <tbody>
+            @for (doc of s.otherDocuments; track doc.documentId) {
+              <tr>
+                <td>{{ doc.fileName }}</td>
+                <td>{{ doc.uploadedAtUtc | date: 'mediumDate' }}</td>
+                <td class="num">{{ formatBytes(doc.sizeBytes) }}</td>
+              </tr>
+            }
+          </tbody>
+        </table>
+      }
+    </section>
+
+    <footer class="doc-foot">
+      <span>{{ settings.display().companyName }} · {{ s.candidateCode }}</span>
+      <span>Generated {{ s.generatedAtUtc | date: 'dd MMM yyyy HH:mm' }}</span>
+    </footer>
+  </article>
+}

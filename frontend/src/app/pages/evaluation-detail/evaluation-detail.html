@@ -1,0 +1,408 @@
+<div class="page" *ngIf="draft() as d">
+  <header class="head no-print">
+    <div>
+      <h1>Interview Evaluation</h1>
+      <p class="sub">
+        <a class="link" [routerLink]="['/candidates', evaluation()?.candidateId]">{{ evaluation()?.candidate?.name }}</a>
+        <span class="code">{{ evaluation()?.candidateCode }}</span>
+        · Interview {{ evaluation()?.interviewNumber }}
+        · {{ evaluation()?.interviewDate | date: 'dd MMM yyyy' }}
+      </p>
+    </div>
+    <div class="head-actions">
+      <span class="total" [class.over]="totalRating() > maxRating()">{{ totalRating() }} / {{ maxRating() }}</span>
+      @if (canEdit()) {
+        <button class="btn btn-primary" type="button" [disabled]="saving()" (click)="save()">
+          <app-icon name="check" /><span>Save</span>
+        </button>
+      }
+      @if (canDelete()) {
+        <button class="btn danger" type="button" [disabled]="saving()" (click)="remove()">
+          <app-icon name="trash" /><span>Delete</span>
+        </button>
+      }
+      <a class="btn" [routerLink]="['/evaluations', evaluation()?.id, 'print']"><app-icon name="pdf" /><span>Print / PDF</span></a>
+      <a class="btn" routerLink="/evaluations"><app-icon name="back" /><span>Archive</span></a>
+    </div>
+  </header>
+
+  @if (error(); as message) {
+    <p class="banner danger no-print">{{ message }}</p>
+  }
+  @if (notice(); as message) {
+    <p class="banner ok no-print">{{ message }}</p>
+  }
+  @if (!canEdit() && !loading()) {
+    <p class="banner warn no-print">
+      This form was filled by {{ evaluation()?.createdByName }}. Only a Manager or Super Admin may change it.
+    </p>
+  }
+
+  <section class="surface block">
+    <h2>Interview header</h2>
+    <div class="grid four">
+      <div class="field narrow">
+        <label for="interviewNumber">Interview number</label>
+        <input id="interviewNumber" type="number" min="1" max="20" [disabled]="!canEdit()" [(ngModel)]="d.interviewNumber" />
+      </div>
+      <div class="field narrow">
+        <label for="interviewDate">Interview date</label>
+        <input id="interviewDate" type="date" [disabled]="!canEdit()" [(ngModel)]="d.interviewDate" (ngModelChange)="touch()" />
+      </div>
+      <div class="field narrow">
+        <label for="status">Interview status</label>
+        <select id="status" [disabled]="!canEdit()" [(ngModel)]="d.status" (ngModelChange)="touch()">
+          @for (option of statuses; track option.value) {
+            <option [ngValue]="option.value">{{ option.label }}</option>
+          }
+        </select>
+      </div>
+      <div class="field narrow">
+        <label for="persons">Number of person interview taken</label>
+        <input id="persons" type="number" min="0" max="99" [disabled]="!canEdit()" [(ngModel)]="d.personsInterviewTaken" />
+      </div>
+      <div class="field">
+        <label for="position">Applied Position</label>
+        <div class="with-button">
+          <select id="position" [disabled]="!canEdit()" [(ngModel)]="d.appliedJobPositionId">
+            <option [ngValue]="null">Not set</option>
+            @for (option of jobPositions(); track option.id) {
+              <option [ngValue]="option.id">{{ option.name }}</option>
+            }
+          </select>
+          @if (canEdit()) {
+            <button class="btn" type="button" (click)="addMasterData('position')">+ New</button>
+          }
+        </div>
+      </div>
+      <div class="field">
+        <label for="concern">Concern Name</label>
+        <div class="with-button">
+          <select id="concern" [disabled]="!canEdit()" [(ngModel)]="d.concernId">
+            <option [ngValue]="null">Not set</option>
+            @for (option of concerns(); track option.id) {
+              <option [ngValue]="option.id">{{ option.name }}</option>
+            }
+          </select>
+          @if (canEdit()) {
+            <button class="btn" type="button" (click)="addMasterData('concern')">+ New</button>
+          }
+        </div>
+      </div>
+      <div class="field wide">
+        <label for="remarks">Remarks</label>
+        <input id="remarks" type="text" maxlength="1000" [disabled]="!canEdit()" [(ngModel)]="d.remarks" />
+      </div>
+    </div>
+  </section>
+
+  <section class="surface block">
+    <h2>A · Candidate's Part</h2>
+    <div class="grid four readout">
+      <div><label>Name</label><span>{{ evaluation()?.candidate?.name }}</span></div>
+      <div><label>Mobile</label><span>{{ evaluation()?.candidate?.mobileNumber ?? '—' }}</span></div>
+      <div><label>Email</label><span>{{ evaluation()?.candidate?.email ?? '—' }}</span></div>
+      <div><label>Date of birth</label><span>{{ evaluation()?.candidate?.dateOfBirth ? (evaluation()!.candidate.dateOfBirth | date: 'dd MMM yyyy') : '—' }}</span></div>
+      <div><label>Present organization</label><span>{{ evaluation()?.candidate?.currentOrganization ?? '—' }}</span></div>
+      <div><label>Present designation</label><span>{{ evaluation()?.candidate?.currentDesignation ?? '—' }}</span></div>
+      <div><label>Present salary</label><span>{{ evaluation()?.candidate?.presentSalary ?? '—' }}</span></div>
+      <div><label>Duration in organization</label><span>{{ evaluation()?.candidate?.durationInCurrentOrganization ?? '—' }}</span></div>
+      <div><label>Total years of experience</label><span>{{ evaluation()?.candidate?.totalYearsOfExperience ?? '—' }}</span></div>
+      <div><label>Present address</label><span>{{ evaluation()?.candidate?.presentAddress ?? '—' }}</span></div>
+      <div><label>Expected salary</label><span>{{ evaluation()?.candidate?.expectedSalary ?? '—' }}</span></div>
+      <div><label>Notice period</label><span>{{ evaluation()?.candidate?.noticePeriod ?? '—' }}</span></div>
+    </div>
+  </section>
+
+  <section class="surface block">
+    <h2>B · Documents submitted</h2>
+    <div class="checklist">
+      @for (half of [firstHalf(d.documentItems), secondHalf(d.documentItems)]; track $index) {
+        <table class="table">
+          <thead>
+            <tr>
+              <th>Document</th>
+              <th>Details</th>
+              <th class="chk">Copy</th>
+              <th class="chk">Original</th>
+            </tr>
+          </thead>
+          <tbody>
+            @for (row of half; track row.itemCode) {
+              <tr>
+                <td>{{ row.itemCode }}. {{ row.itemName }}</td>
+                <td><input type="text" maxlength="500" [disabled]="!canEdit()" [(ngModel)]="row.details" /></td>
+                <td class="chk"><input type="checkbox" [disabled]="!canEdit()" [(ngModel)]="row.copySubmitted" /></td>
+                <td class="chk"><input type="checkbox" [disabled]="!canEdit()" [(ngModel)]="row.originalChecked" /></td>
+              </tr>
+            }
+          </tbody>
+        </table>
+      }
+    </div>
+  </section>
+
+  <section class="surface block">
+    <h2>C · References</h2>
+    @for (ref of d.references; track ref.referenceNumber) {
+      <div class="ref-block">
+        <h3>Reference {{ ref.referenceNumber }}</h3>
+        <div class="grid four">
+          <div class="field">
+            <label>Name</label>
+            <input type="text" maxlength="200" [disabled]="!canEdit()" [(ngModel)]="ref.referenceName" />
+          </div>
+          <div class="field">
+            <label>Designation</label>
+            <input type="text" maxlength="200" [disabled]="!canEdit()" [(ngModel)]="ref.designation" />
+          </div>
+          <div class="field">
+            <label>Relationship</label>
+            <input type="text" maxlength="100" [disabled]="!canEdit()" [(ngModel)]="ref.relationship" />
+          </div>
+          <div class="field">
+            <label>Phone</label>
+            <input type="text" maxlength="50" [disabled]="!canEdit()" [(ngModel)]="ref.phone" />
+          </div>
+          <div class="field wide">
+            <label>Company &amp; Location</label>
+            <input type="text" maxlength="300" [disabled]="!canEdit()" [(ngModel)]="ref.companyAndLocation" />
+          </div>
+          <div class="field wide">
+            <label>Statement</label>
+            <textarea rows="2" maxlength="2000" [disabled]="!canEdit()" [(ngModel)]="ref.statement"></textarea>
+          </div>
+        </div>
+      </div>
+    }
+  </section>
+
+  <section class="surface block">
+    <h2>D · Fill-up by Evaluators Only</h2>
+    <p class="scale">{{ evaluation()?.ratingScaleText }}</p>
+    <div class="ratings">
+      @for (half of ratingPairs(); track $index) {
+        <table class="table">
+          <thead>
+            <tr>
+              <th>Dimensions</th>
+              <th class="rating">Rating</th>
+            </tr>
+          </thead>
+          <tbody>
+            @for (row of half; track row.dimensionCode) {
+              <tr>
+                <td>{{ row.dimensionCode }}. {{ row.dimensionName }}</td>
+                <td class="rating">
+                  <select [disabled]="!canEdit()" [(ngModel)]="row.rating" (ngModelChange)="touch()">
+                    @for (choice of ratingChoices; track choice) {
+                      <option [ngValue]="choice">{{ choice === 0 ? '—' : choice }}</option>
+                    }
+                  </select>
+                </td>
+              </tr>
+            }
+          </tbody>
+        </table>
+      }
+    </div>
+    <p class="total-line">
+      Total Rating: <strong>{{ totalRating() }}</strong> / (Out of {{ maxRating() }})
+    </p>
+  </section>
+
+  <section class="surface block">
+    <h2>E · Evaluator findings &amp; signatures</h2>
+    <div class="evaluators">
+      @for (ev of d.evaluators; track ev.sectionNumber) {
+        <div class="eval-block">
+          <h3>Section {{ ev.sectionNumber }}</h3>
+          <div class="field">
+            <label>Findings about the candidate</label>
+            <textarea rows="3" maxlength="2000" [disabled]="!canEdit()" [(ngModel)]="ev.findings"></textarea>
+          </div>
+          <div class="grid two">
+            <div class="field">
+              <label>Name</label>
+              <input type="text" maxlength="200" [disabled]="!canEdit()" [(ngModel)]="ev.evaluatorName" />
+            </div>
+            <div class="field">
+              <label>Designation</label>
+              <input type="text" maxlength="200" [disabled]="!canEdit()" [(ngModel)]="ev.designation" />
+            </div>
+            <div class="field">
+              <label>Department</label>
+              <input type="text" maxlength="200" [disabled]="!canEdit()" [(ngModel)]="ev.department" />
+            </div>
+            <div class="field">
+              <label>Signature</label>
+              <input type="text" maxlength="200" [disabled]="!canEdit()" [(ngModel)]="ev.signatureText" />
+            </div>
+          </div>
+        </div>
+      }
+    </div>
+  </section>
+
+  @if (d.result) {
+    <section class="surface block">
+      <h2>F · Decision &amp; recommendation</h2>
+      <div class="grid four">
+        <div class="field">
+          <label for="decision">Decision</label>
+          <select id="decision" [disabled]="!canEdit()" [(ngModel)]="d.result.decision" (ngModelChange)="touch()">
+            @for (option of decisions; track option.value) {
+              <option [ngValue]="option.value">{{ option.label }}</option>
+            }
+          </select>
+        </div>
+        <div class="field">
+          <label for="expSalary">Expected Salary</label>
+          <input id="expSalary" type="number" min="0" [disabled]="!canEdit()" [(ngModel)]="d.result.expectedSalary" />
+        </div>
+        <div class="field">
+          <label for="notice">Notice Period</label>
+          <input id="notice" type="text" maxlength="100" [disabled]="!canEdit()" [(ngModel)]="d.result.noticePeriod" />
+        </div>
+        <div class="field wide">
+          <label for="recommendation">Recommendation</label>
+          <input id="recommendation" type="text" maxlength="1000" [disabled]="!canEdit()" [(ngModel)]="d.result.recommendation" />
+        </div>
+      </div>
+
+      <h2 class="sub-head">G · Final decision</h2>
+      <div class="grid four">
+        <div class="field">
+          <label for="designationFixed">Designation Fixed</label>
+          <div class="with-button">
+            <select id="designationFixed" [disabled]="!canEdit()" [(ngModel)]="d.result.designationFixedId">
+              <option [ngValue]="null">Not fixed</option>
+              @for (option of designations(); track option.id) {
+                <option [ngValue]="option.id">{{ option.name }}</option>
+              }
+            </select>
+            @if (canEdit() && auth.can('settings.manage')) {
+              <button class="btn" type="button" (click)="addMasterData('designation')">+ New</button>
+            }
+          </div>
+        </div>
+        <div class="field">
+          <label for="salaryFixed">Salary Fixed</label>
+          <input id="salaryFixed" type="number" min="0" [disabled]="!canEdit()" [(ngModel)]="d.result.salaryFixed" />
+        </div>
+        <div class="field narrow">
+          <label for="grade">Grade</label>
+          <input id="grade" type="text" maxlength="50" [disabled]="!canEdit()" [(ngModel)]="d.result.grade" />
+        </div>
+        <div class="field narrow">
+          <label for="doj">Date of Joining</label>
+          <input id="doj" type="date" [disabled]="!canEdit()" [(ngModel)]="d.result.dateOfJoining" />
+        </div>
+        <div class="field wide">
+          <label for="resultRemarks">Remarks</label>
+          <textarea id="resultRemarks" rows="2" maxlength="1000" [disabled]="!canEdit()" [(ngModel)]="d.result.remarks"></textarea>
+        </div>
+      </div>
+    </section>
+  }
+
+  <section class="surface block">
+    <h2>H · Approvals</h2>
+    <table class="table approvals">
+      <thead>
+        <tr>
+          <th>Concerned HOD</th>
+          <th>Business Head</th>
+          <th>HOD - HR</th>
+          <th>Director</th>
+          <th>Managing Director</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr>
+          @for (ap of d.approvals; track ap.authorityNumber) {
+            <td>
+              <select [disabled]="!canEdit()" [(ngModel)]="ap.decision">
+                <option [ngValue]="null">—</option>
+                @for (option of approvalDecisions; track option) {
+                  <option [ngValue]="option">{{ option }}</option>
+                }
+              </select>
+              <input type="text" maxlength="200" placeholder="Signature" [disabled]="!canEdit()" [(ngModel)]="ap.signatureText" />
+            </td>
+          }
+        </tr>
+      </tbody>
+    </table>
+    <p class="hint">Authority names follow the printed form; leave blank where a signature is still on paper.</p>
+  </section>
+
+  <section class="surface block no-print">
+    <h2>I · Scanned completed form</h2>
+
+    @if (evaluation()?.scannedForms?.length) {
+      <table class="table scans">
+        <thead>
+          <tr>
+            <th>File</th>
+            <th>Size</th>
+            <th>Uploaded</th>
+            <th>By</th>
+            <th>Remarks</th>
+            <th></th>
+          </tr>
+        </thead>
+        <tbody>
+          @for (scan of evaluation()!.scannedForms; track scan.id) {
+            <tr>
+              <td>
+                {{ scan.fileName }}
+                @if (!scan.isCurrent) {
+                  <span class="badge old">superseded</span>
+                }
+              </td>
+              <td>{{ formatBytes(scan.sizeBytes) }}</td>
+              <td>{{ scan.uploadedAtUtc | date: 'dd MMM yyyy HH:mm' }}</td>
+              <td>{{ scan.uploadedByName ?? '—' }}</td>
+              <td>{{ scan.remarks ?? '—' }}</td>
+              <td class="row-actions">
+                <button class="btn" type="button" (click)="openScan(scan.id)">View</button>
+                <button class="btn" type="button" (click)="downloadScan(scan.id)">Download</button>
+              </td>
+            </tr>
+          }
+        </tbody>
+      </table>
+
+      <div class="scan-view hidden">
+        <h3>Scanned form preview</h3>
+        <iframe id="scan-view" title="Scanned evaluation form"></iframe>
+      </div>
+    } @else {
+      <p class="hint">No scanned form uploaded yet.</p>
+    }
+
+    @if (canUploadScan()) {
+      <div class="grid upload">
+        <div class="field">
+          <label for="scan-file">Upload scanned form (PDF, JPG or PNG, max {{ settings.display().maxUploadMb }} MB)</label>
+          <input id="scan-file" type="file" accept=".pdf,.jpg,.jpeg,.png" (change)="onScanPicked($event)" />
+        </div>
+        <div class="field">
+          <label for="scan-remarks">Remarks</label>
+          <input id="scan-remarks" type="text" maxlength="400" [(ngModel)]="scanRemarks" />
+        </div>
+        <div class="field actions">
+          <button class="btn btn-primary" type="button" [disabled]="saving() || !scanFile" (click)="uploadScan()">
+            Upload
+          </button>
+        </div>
+      </div>
+    }
+  </section>
+
+  <footer class="meta no-print">
+    Created {{ evaluation()?.createdAtUtc | date: 'dd MMM yyyy HH:mm' }} by {{ evaluation()?.createdByName ?? '—' }}
+    · Saved values are stored exactly as filled.
+  </footer>
+</div>

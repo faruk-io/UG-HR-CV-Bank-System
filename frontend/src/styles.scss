@@ -1,0 +1,260 @@
+:root {
+  --sidebar-background: #10233f;
+  --sidebar-text: #d7e0f0;
+  --page-background: #f5f7fa;
+  --surface: #ffffff;
+  --border: #dfe5ee;
+  --border-strong: #c9d3e2;
+  --text: #1c2433;
+  --text-muted: #64748b;
+  --heading: #16233b;
+  --accent: #2563eb;
+  --accent-strong: #1d4ed8;
+  --danger: #b42318;
+  --danger-soft: #fef3f2;
+  --ok: #0f6b3d;
+  --ok-soft: #e7f6ec;
+  --radius: 10px;
+  --radius-sm: 6px;
+  --shadow-sm: 0 1px 2px rgb(16 35 63 / 6%);
+  --shadow-md: 0 4px 16px rgb(16 35 63 / 8%);
+}
+
+* {
+  box-sizing: border-box;
+}
+
+html,
+body {
+  margin: 0;
+  padding: 0;
+  font-family: "Segoe UI", Inter, Roboto, "Helvetica Neue", Arial, sans-serif;
+  font-size: 15px;
+  line-height: 1.45;
+  color: var(--text);
+  background: var(--page-background);
+  -webkit-font-smoothing: antialiased;
+}
+
+h1,
+h2,
+h3 {
+  margin: 0;
+  font-weight: 600;
+  color: var(--heading);
+  letter-spacing: -0.01em;
+}
+
+a {
+  color: inherit;
+  text-decoration: none;
+}
+
+button {
+  font: inherit;
+}
+
+::selection {
+  background: rgb(37 99 235 / 18%);
+}
+
+.surface {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  box-shadow: var(--shadow-sm);
+  overflow-x: auto;
+  overscroll-behavior-x: contain;
+  scrollbar-width: thin;
+}
+
+.table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 0.9375rem;
+
+  th,
+  td {
+    padding: 0.6rem 0.85rem;
+    border-bottom: 1px solid var(--border);
+    text-align: left;
+    vertical-align: top;
+  }
+
+  thead th {
+    background: #f7f9fc;
+    color: #4a5a74;
+    font-size: 0.78rem;
+    font-weight: 600;
+    letter-spacing: 0.03em;
+    text-transform: uppercase;
+    white-space: nowrap;
+    border-bottom-color: var(--border-strong);
+  }
+
+  tbody tr:last-child td {
+    border-bottom: 0;
+  }
+
+  tbody tr:hover td {
+    background: #fafcfe;
+  }
+}
+
+.btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.4rem;
+  padding: 0.42rem 0.9rem;
+  border: 1px solid var(--border-strong);
+  border-radius: var(--radius-sm);
+  background: #fff;
+  color: #2b3a52;
+  font-size: 0.875rem;
+  font-weight: 600;
+  line-height: 1.35;
+  cursor: pointer;
+  transition:
+    background-color 120ms ease,
+    border-color 120ms ease,
+    color 120ms ease;
+
+  &:hover:not([disabled]) {
+    background: #f2f6fc;
+    border-color: #b4c3da;
+  }
+
+  &:active:not([disabled]) {
+    background: #e8eefa;
+  }
+
+  &:focus-visible {
+    outline: 2px solid var(--accent);
+    outline-offset: 1px;
+  }
+
+  &[disabled] {
+    opacity: 0.55;
+    cursor: default;
+  }
+}
+
+.btn-primary {
+  border-color: var(--accent);
+  background: var(--accent);
+  color: #fff;
+
+  &:hover:not([disabled]) {
+    background: var(--accent-strong);
+    border-color: var(--accent-strong);
+  }
+
+  &:active:not([disabled]) {
+    background: #1a45b8;
+  }
+}
+
+.field {
+  display: flex;
+  flex-direction: column;
+  gap: 0.3rem;
+
+  label {
+    font-size: 0.8rem;
+    font-weight: 600;
+    color: #46536b;
+    letter-spacing: 0.01em;
+  }
+
+  input,
+  select,
+  textarea {
+    padding: 0.45rem 0.6rem;
+    border: 1px solid var(--border-strong);
+    border-radius: var(--radius-sm);
+    background: #fff;
+    color: var(--text);
+    font: inherit;
+    font-size: 0.9375rem;
+    transition:
+      border-color 120ms ease,
+      box-shadow 120ms ease;
+
+    &::placeholder {
+      color: #9aa7bb;
+    }
+
+    &:focus {
+      outline: none;
+      border-color: var(--accent);
+      box-shadow: 0 0 0 3px rgb(37 99 235 / 15%);
+    }
+
+    &[disabled] {
+      background: #f4f6fa;
+      color: var(--text-muted);
+      cursor: not-allowed;
+    }
+  }
+
+  select {
+    appearance: none;
+    background-image: linear-gradient(45deg, transparent 50%, #6b7c96 50%),
+      linear-gradient(135deg, #6b7c96 50%, transparent 50%);
+    background-position:
+      calc(100% - 15px) calc(50% + 1px),
+      calc(100% - 10px) calc(50% + 1px);
+    background-size: 5px 5px, 5px 5px;
+    background-repeat: no-repeat;
+    padding-right: 1.8rem;
+  }
+
+  &.bad input,
+  &.bad select,
+  &.bad textarea {
+    border-color: var(--danger);
+    box-shadow: 0 0 0 3px rgb(180 35 24 / 12%);
+  }
+}
+
+@page {
+  size: A4;
+  margin: 14mm 12mm;
+}
+
+/* Wide reports print on a sideways sheet, the same paper the PDF export uses.
+   The name has to sit on <html> — on an inner box Chrome emits an empty first page. */
+@page report-landscape {
+  size: A4 landscape;
+  margin: 9mm 8mm 10mm;
+}
+
+@media print {
+  html.report-landscape {
+    page: report-landscape;
+  }
+}
+
+@media print {
+  .shell {
+    display: block !important;
+  }
+
+  .sidebar,
+  .topbar {
+    display: none !important;
+  }
+
+  .main {
+    margin: 0 !important;
+  }
+
+  .content {
+    padding: 0 !important;
+  }
+
+  .surface,
+  .scroll {
+    overflow: visible;
+  }
+}

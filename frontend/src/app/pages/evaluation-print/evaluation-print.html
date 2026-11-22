@@ -1,0 +1,291 @@
+<!-- Official 2026 Interview Evaluation Form — A4 print/PDF sheet. Wording kept verbatim, including the source typos. -->
+<div class="page">
+  <div class="toolbar no-print">
+    <a class="btn" routerLink="/evaluations"><app-icon name="back" /><span>Archive</span></a>
+    @if (form(); as f) {
+      <a class="btn" [routerLink]="['/evaluations', evaluationId]"><app-icon name="edit" /><span>Edit</span></a>
+      <button class="btn" type="button" (click)="print()"><app-icon name="print" /><span>Print</span></button>
+      <button class="btn btn-primary" type="button" [disabled]="busy()" (click)="downloadPdf()">
+        <app-icon name="pdf" /><span>{{ busy() ? 'Preparing PDF…' : 'Download PDF' }}</span>
+      </button>
+    }
+  </div>
+
+  @if (error(); as message) {
+    <p class="banner danger no-print">{{ message }}</p>
+  }
+  @if (loading()) {
+    <p class="note">Loading the interview form…</p>
+  }
+
+  @if (form(); as f) {
+    <article class="sheet">
+      <header class="form-head">
+        <img class="head-logo" src="images/logo-full.svg" alt="Union Limited" />
+        <div class="head-title">
+          <h1>{{ f.title }}</h1>
+          <span class="date">{{ f.dateLabel }}</span>
+        </div>
+        <div class="head-address">
+          <strong>Union Centre</strong>
+          <span>68/1 Gulshan Avenue</span>
+          <span>Dhaka-1212, Bangladesh</span>
+        </div>
+      </header>
+
+      <table class="form">
+        <tbody>
+          <tr class="band">
+            <th colspan="4">Candidate's Part</th>
+          </tr>
+          <tr>
+            <td class="k" rowspan="2">Name</td>
+            <td rowspan="2">{{ f.name }}</td>
+            <td class="k">Position Applied for</td>
+            <td>{{ f.positionApplied }}</td>
+          </tr>
+          <tr>
+            <td class="k">Concern Name</td>
+            <td>{{ f.concernName }}</td>
+          </tr>
+          <tr class="band">
+            <th colspan="4">Current Working Details</th>
+          </tr>
+          <tr>
+            <td class="k">Company Name</td>
+            <td>{{ f.companyName }}</td>
+            <td class="k">Present Salary</td>
+            <td>{{ f.presentSalary }}</td>
+          </tr>
+          <tr>
+            <td class="k">Designation</td>
+            <td>{{ f.designation }}</td>
+            <td class="k">Academic Qualification</td>
+            <td class="hand"></td>
+          </tr>
+          <tr>
+            <td class="k">Duration (Current Org.)</td>
+            <td>{{ f.duration }}</td>
+            <td class="k">Total Year of Experience</td>
+            <td>{{ f.experience }}</td>
+          </tr>
+          <tr>
+            <td class="k">Date of Birth:</td>
+            <td colspan="3">{{ f.dateOfBirth }}</td>
+          </tr>
+        </tbody>
+      </table>
+
+      <table class="form address">
+        <tbody>
+          <tr>
+            <td class="k">Present Address:</td>
+            <td colspan="3">{{ f.presentAddress }}</td>
+            <td class="k">Area:</td>
+            <td class="hand"></td>
+            <td class="k">District:</td>
+            <td class="hand"></td>
+          </tr>
+          <tr>
+            <td class="k">Permanent Address:</td>
+            <td colspan="3" class="hand"></td>
+            <td class="k">Area:</td>
+            <td class="hand"></td>
+            <td class="k">District:</td>
+            <td class="hand"></td>
+          </tr>
+        </tbody>
+      </table>
+
+      <table class="form docs">
+        <tbody>
+          <tr class="band">
+            <th colspan="8">Submitted Documents</th>
+          </tr>
+          <tr class="head">
+            <th>SL No</th>
+            <th>Details</th>
+            <th class="tick">Copy</th>
+            <th class="tick">Original Checked</th>
+            <th>SL No</th>
+            <th>Details</th>
+            <th class="tick">Copy</th>
+            <th class="tick">Original Checked</th>
+          </tr>
+          @for (row of documentRows(); track $index) {
+            <tr>
+              <td class="sl">{{ row.left?.sl }}</td>
+              <td>{{ row.left?.name }}{{ row.left?.details ? ' — ' + row.left?.details : '' }}</td>
+              <td class="tick"><span class="cbox" [class.on]="row.left?.copy"></span></td>
+              <td class="tick"><span class="cbox" [class.on]="row.left?.original"></span></td>
+              <td class="sl">{{ row.right?.sl }}</td>
+              <td>{{ row.right?.name }}{{ row.right?.details ? ' — ' + row.right?.details : '' }}</td>
+              <td class="tick"><span class="cbox" [class.on]="row.right?.copy"></span></td>
+              <td class="tick"><span class="cbox" [class.on]="row.right?.original"></span></td>
+            </tr>
+          }
+        </tbody>
+      </table>
+
+      <table class="form refs">
+        <tbody>
+          <tr class="band">
+            <th colspan="6">References</th>
+          </tr>
+          @for (ref of referenceBlocks(); track $index) {
+            <tr>
+              <td class="k">Reference Name</td>
+              <td>{{ ref.name }}</td>
+              <td class="k">Designation</td>
+              <td>{{ ref.designation }}</td>
+              <td class="k">Relationship</td>
+              <td>{{ ref.relationship }}</td>
+            </tr>
+            <tr>
+              <td class="k" colspan="2">Company Name &amp; Location</td>
+              <td colspan="2">{{ ref.company }}</td>
+              <td class="k">Phone</td>
+              <td>{{ ref.phone }}</td>
+            </tr>
+            <tr class="statement">
+              <td class="k">Statement</td>
+              <td colspan="5">{{ ref.statement }}</td>
+            </tr>
+          }
+        </tbody>
+      </table>
+
+      <table class="form">
+        <tbody>
+          <tr class="band">
+            <th colspan="4">Fill-up by Evaluators Only</th>
+          </tr>
+          <tr>
+            <td class="sub" colspan="4">Attributes Rating</td>
+          </tr>
+          <tr>
+            <td class="scale" colspan="4">{{ f.ratingScale }}</td>
+          </tr>
+          <tr class="head">
+            <th>DIMENSIONS</th>
+            <th>RATING</th>
+            <th>DIMENSIONS</th>
+            <th>RATING</th>
+          </tr>
+          @for (row of ratingRows(); track $index) {
+            <tr>
+              <td>{{ row.left?.name }}</td>
+              <td class="mark">{{ row.left?.rating }}</td>
+              <td>{{ row.right?.name }}</td>
+              <td class="mark">{{ row.right?.rating }}</td>
+            </tr>
+          }
+          <tr class="total">
+            <td colspan="4">Total Rating: {{ f.totalRating }} / (Out of {{ f.maxRating }})</td>
+          </tr>
+        </tbody>
+      </table>
+
+      <table class="form evaluators">
+        <tbody>
+          @for (row of evaluatorRows(); track $index) {
+            <tr>
+              <td>
+                <div class="findings">Findings: {{ row.left?.findings }}</div>
+                <div>Sign: {{ row.left?.sign }}</div>
+                <div>Name: {{ row.left?.name }}</div>
+                <div class="split">
+                  <span>Designation: {{ row.left?.designation }}</span>
+                  <span>Department: {{ row.left?.department }}</span>
+                </div>
+              </td>
+              <td>
+                <div class="findings">Findings: {{ row.right?.findings }}</div>
+                <div>Sign: {{ row.right?.sign }}</div>
+                <div>Name: {{ row.right?.name }}</div>
+                <div class="split">
+                  <span>Designation: {{ row.right?.designation }}</span>
+                  <span>Department: {{ row.right?.department }}</span>
+                </div>
+              </td>
+            </tr>
+          }
+        </tbody>
+      </table>
+
+      <table class="form">
+        <tbody>
+          <tr>
+            <td class="k">Number of Person Interview Taken</td>
+            <td>{{ f.personsTaken }}</td>
+            <td class="k">Expected Salary</td>
+            <td>{{ f.expectedSalary }}</td>
+          </tr>
+          <tr>
+            <td class="k">Recommendation:</td>
+            <td>{{ f.recommendation }}</td>
+            <td class="k">Notice Period</td>
+            <td>{{ f.noticePeriod }}</td>
+          </tr>
+          <tr class="decision">
+            <td class="k">Decision :</td>
+            <td colspan="3">
+              @for (item of f.decisions; track item.label) {
+                <span class="box"><span class="cbox" [class.on]="item.marked"></span><span>{{ item.label }}</span></span>
+              }
+            </td>
+          </tr>
+        </tbody>
+      </table>
+
+      <table class="form final">
+        <tbody>
+          <tr class="band">
+            <th colspan="8">Final Decision</th>
+          </tr>
+          <tr class="four">
+            <td class="k">Designation Fixed:</td>
+            <td>{{ f.designationFixed }}</td>
+            <td class="k">Salary Fixed:</td>
+            <td>{{ f.salaryFixed }}</td>
+            <td class="k">Grade:</td>
+            <td>{{ f.grade }}</td>
+            <td class="k">DOJ:</td>
+            <td>{{ f.doj }}</td>
+          </tr>
+          <tr>
+            <td class="k" colspan="8">Remarks:</td>
+          </tr>
+          <tr>
+            <td class="remarks" colspan="8">{{ f.remarks }}</td>
+          </tr>
+        </tbody>
+      </table>
+
+      <table class="form approvals">
+        <tbody>
+          <tr class="band">
+            <th [attr.colspan]="f.approvals.length || 1">Approvals</th>
+          </tr>
+          <tr class="head">
+            @for (a of f.approvals; track a.title) {
+              <th>{{ a.title }}</th>
+            }
+          </tr>
+          <tr>
+            @for (a of f.approvals; track a.title) {
+              <td class="decision-cell">{{ a.decision }}</td>
+            }
+          </tr>
+          <tr>
+            @for (a of f.approvals; track a.title) {
+              <td class="sign-cell">{{ a.sign }}</td>
+            }
+          </tr>
+        </tbody>
+      </table>
+
+      <footer class="form-foot">{{ f.footer }}</footer>
+    </article>
+  }
+</div>

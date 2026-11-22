@@ -1,0 +1,60 @@
+<div class="shell" [class.collapsed]="collapsed()">
+  <aside class="sidebar">
+    <div class="brand">
+      <span class="brand-logo"><img src="/images/logo-mark.svg" alt="Union Group logo" width="30" height="30" /></span>
+      <span class="brand-text">
+        <span class="brand-name">{{ settings.display().companyName }}</span>
+        <span class="brand-tag">Interview Evaluation</span>
+      </span>
+    </div>
+    <nav>
+      @for (item of visibleMenu(); track item.path) {
+        <a class="nav-item" [routerLink]="item.path" routerLinkActive="active" [attr.title]="collapsed() ? item.label : null">
+          <app-icon class="nav-icon" [name]="item.icon" />
+          <span>{{ item.label }}</span>
+        </a>
+      }
+    </nav>
+  </aside>
+
+  <div class="main">
+    <header class="topbar">
+      <button
+        class="ghost menu-toggle"
+        type="button"
+        (click)="toggleSidebar()"
+        [attr.aria-label]="collapsed() ? 'Show menu' : 'Hide menu'"
+        [title]="collapsed() ? 'Show menu' : 'Hide menu'"
+      >
+        <app-icon name="menu" />
+      </button>
+      <span class="page-title">Union Group CV Bank — Interview Evaluation Management System</span>
+      <span class="user">
+        <span class="avatar">{{ initials() }}</span>
+        <span class="who">
+          <span class="name">{{ auth.currentUser()?.fullName }}</span>
+          <span class="role">{{ auth.currentUser()?.role }}</span>
+        </span>
+        <button class="ghost" type="button" (click)="passwordPanelOpen.set(true)">
+          <app-icon name="lock" />
+          <span>Password</span>
+        </button>
+        <button class="ghost" type="button" (click)="auth.logout()">
+          <app-icon name="logout" />
+          <span>Sign out</span>
+        </button>
+      </span>
+    </header>
+
+    <main class="content">
+      <router-outlet />
+    </main>
+	<footer class="app-footer">
+  © {{ year }} Union Group. All rights reserved Developed by: Faruk Ahmed Araf.
+</footer>
+  </div>
+</div>
+
+@if (passwordPanelOpen()) {
+  <app-change-password (closed)="passwordPanelOpen.set(false)" />
+}

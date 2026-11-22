@@ -1,0 +1,155 @@
+:host {
+  display: block;
+}
+
+.page {
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+}
+
+.head {
+  h1 {
+    margin: 0;
+    font-size: 1.375rem;
+  }
+
+  .sub {
+    margin: 0.15rem 0 0;
+    color: var(--text-muted);
+    font-size: 0.875rem;
+  }
+}
+
+.banner {
+  margin: 0;
+  padding: 0.6rem 0.85rem;
+  border-radius: 4px;
+  font-size: 0.9rem;
+
+  &.danger {
+    background: var(--danger-soft);
+    border: 1px solid #f4c7c3;
+    color: var(--danger);
+  }
+
+  &.success {
+    background: #e7f6ec;
+    border: 1px solid #b7e0c3;
+    color: #1c6b3c;
+  }
+}
+
+.note {
+  margin: 0;
+  color: var(--text-muted);
+  font-size: 0.8rem;
+  line-height: 1.5;
+}
+
+.block {
+  padding: 1rem;
+}
+
+.block-head {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 1rem;
+  flex-wrap: wrap;
+  margin-bottom: 0.75rem;
+
+  h2 {
+    margin: 0;
+    font-size: 1.05rem;
+  }
+}
+
+.hint {
+  margin: 0;
+  color: var(--text-muted);
+  font-size: 0.75rem;
+}
+
+.add {
+  display: flex;
+  gap: 0.5rem;
+  margin-bottom: 0.75rem;
+
+  input {
+    flex: 1 1 14rem;
+    max-width: 24rem;
+  }
+
+  .btn {
+    flex: 0 0 auto;
+  }
+}
+
+.table {
+  th {
+    white-space: nowrap;
+  }
+
+  td,
+  th {
+    vertical-align: middle;
+    font-size: 0.85rem;
+  }
+
+  tr.off td {
+    color: var(--text-muted);
+  }
+
+  .num {
+    text-align: right;
+    white-space: nowrap;
+  }
+
+  .empty {
+    text-align: center;
+    color: var(--text-muted);
+    padding: 1.25rem;
+  }
+
+  .rename {
+    width: 100%;
+    max-width: 22rem;
+  }
+}
+
+.badge {
+  display: inline-block;
+  padding: 0.1rem 0.5rem;
+  border-radius: 999px;
+  font-size: 0.75rem;
+  border: 1px solid var(--border);
+  background: #eef1f6;
+  color: #33415c;
+
+  &[data-on='true'] {
+    background: #e7f6ec;
+    border-color: #b7e0c3;
+    color: #1c6b3c;
+  }
+
+  &[data-on='false'] {
+    background: var(--danger-soft);
+    border-color: #f4c7c3;
+    color: var(--danger);
+  }
+}
+
+.row-actions {
+  white-space: nowrap;
+  text-align: right;
+
+  .btn + .btn {
+    margin-left: 0.35rem;
+  }
+
+  .btn[disabled] {
+    opacity: 0.45;
+    cursor: not-allowed;
+  }
+}

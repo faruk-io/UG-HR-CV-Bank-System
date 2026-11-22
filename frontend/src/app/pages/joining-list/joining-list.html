@@ -1,0 +1,341 @@
+<div class="page">
+  <header class="head">
+    <div>
+      <h1>Joining List</h1>
+      <p class="sub">Employees who joined — entry, salary and probation register.</p>
+    </div>
+    <div class="head-actions">
+      <button class="btn" type="button" [disabled]="exporting() || loading()" (click)="downloadPdf()">
+        <app-icon name="pdf" />
+        <span>{{ exporting() ? 'Exporting…' : 'PDF' }}</span>
+      </button>
+      <button class="btn" type="button" [disabled]="exporting() || loading()" (click)="downloadExcel()">
+        <app-icon name="table" />
+        <span>Excel</span>
+      </button>
+      <button class="btn btn-primary" type="button" (click)="openNew()">
+        <app-icon name="plus" />
+        <span>Add Entry</span>
+      </button>
+    </div>
+  </header>
+
+  <section class="surface filters">
+    <div class="field search">
+      <label for="j-search">Search</label>
+      <input
+        id="j-search"
+        type="search"
+        [ngModel]="q.search"
+        (ngModelChange)="onSearch($event)"
+        placeholder="Employee ID, name, designation, department, concern"
+      />
+    </div>
+
+    <div class="field">
+      <label for="j-filter-concern">Concern</label>
+      <select id="j-filter-concern" [ngModel]="q.concernId" (ngModelChange)="patch({ concernId: $event, page: 1 })">
+        <option [ngValue]="null">All</option>
+        @for (option of concerns(); track option.id) {
+          <option [ngValue]="option.id">{{ option.name }}</option>
+        }
+      </select>
+    </div>
+
+    <div class="field">
+      <label for="j-filter-from">Joining date from</label>
+      <input
+        id="j-filter-from"
+        type="date"
+        [ngModel]="q.dateFrom"
+        (ngModelChange)="patch({ dateFrom: $event, page: 1 })"
+      />
+    </div>
+
+    <div class="field">
+      <label for="j-filter-to">Joining date to</label>
+      <input
+        id="j-filter-to"
+        type="date"
+        [ngModel]="q.dateTo"
+        (ngModelChange)="patch({ dateTo: $event, page: 1 })"
+      />
+    </div>
+
+    <div class="actions">
+      <button class="btn" type="button" [disabled]="!hasFilters()" (click)="clearFilters()">
+        <app-icon name="x" />
+        <span>Clear filters</span>
+      </button>
+    </div>
+  </section>
+
+  @if (error(); as message) {
+    <p class="banner danger">{{ message }}</p>
+  }
+  @if (notice(); as message) {
+    <p class="banner ok">{{ message }}</p>
+  }
+
+  <section class="surface">
+    <table class="table">
+      <thead>
+        <tr>
+          <th class="num">SL</th>
+          <th>Employee ID</th>
+          <th>Name</th>
+          <th>Designation</th>
+          <th>Department</th>
+          <th class="num">Salary</th>
+          <th>Concern</th>
+          <th>Date Of Joining</th>
+          <th>Probition Period</th>
+          <th class="num">After Probition Salary</th>
+          <th>Effective Month</th>
+          <th>Remarks</th>
+          <th></th>
+        </tr>
+      </thead>
+      <tbody>
+        @for (row of page().items; track row.id; let i = $index) {
+          <tr>
+            <td class="num sl">{{ sl(i) }}</td>
+            <td class="code">{{ row.employeeId }}</td>
+            <td class="name">{{ row.name }}</td>
+            <td>{{ row.designation ?? '—' }}</td>
+            <td>{{ row.department ?? '—' }}</td>
+            <td class="num">{{ row.salary !== null ? (row.salary | number: '1.0-2') : '—' }}</td>
+            <td>{{ row.concern ?? '—' }}</td>
+            <td class="date">{{ row.dateOfJoining ? (row.dateOfJoining | date: 'dd MMM yyyy') : '—' }}</td>
+            <td>{{ row.probationPeriod ?? '—' }}</td>
+            <td class="num">{{ row.afterProbationSalary !== null ? (row.afterProbationSalary | number: '1.0-2') : '—' }}</td>
+            <td>{{ row.effectiveSalary ?? '—' }}</td>
+            <td class="remarks-cell">{{ row.remarks ?? '—' }}</td>
+            <td class="row-actions">
+              <button class="btn" type="button" (click)="openEdit(row)">
+                <app-icon name="edit" /><span>Edit</span>
+              </button>
+              <button
+                class="btn danger"
+                type="button"
+                [disabled]="deletingId() === row.id"
+                (click)="deleteRow(row)"
+              >
+                <app-icon name="trash" /><span>{{ deletingId() === row.id ? 'Deleting…' : 'Delete' }}</span>
+              </button>
+            </td>
+          </tr>
+        } @empty {
+          <tr>
+            <td colspan="13" class="empty">
+              {{ loading() ? 'Loading…' : hasFilters() ? 'No joining entry matches the current search and filters.' : 'No joining entry yet. Use “Add Entry” to record the first one.' }}
+            </td>
+          </tr>
+        }
+      </tbody>
+    </table>
+
+    <footer class="pager">
+      <span>{{ from }}–{{ to }} of {{ page().total }}</span>
+      <div>
+        <button
+          class="btn"
+          type="button"
+          [disabled]="page().page <= 1 || loading()"
+          (click)="patch({ page: page().page - 1 })"
+        >
+          Previous
+        </button>
+        <button
+          class="btn"
+          type="button"
+          [disabled]="page().page >= lastPage || loading()"
+          (click)="patch({ page: page().page + 1 })"
+        >
+          Next
+        </button>
+      </div>
+    </footer>
+  </section>
+</div>
+
+@if (editorOpen()) {
+  <div class="backdrop">
+    <section class="surface dialog" role="dialog" [attr.aria-label]="editingId() ? 'Edit joining entry' : 'New joining entry'">
+      <header>
+        <h2>{{ editingId() ? 'Edit Joining Entry' : 'New Joining Entry' }}</h2>
+        <button class="close" type="button" [disabled]="saving()" (click)="closeEditor()">×</button>
+      </header>
+
+      @if (formError(); as message) {
+        <p class="banner danger">{{ message }}</p>
+      }
+
+      <div class="form-grid">
+        <div class="field">
+          <label for="j-employeeId">Employee ID</label>
+          <!-- <label for="j-employeeId">Employee ID <span class="req">*</span></label> -->
+          <input
+            id="j-employeeId"
+            type="text"
+            maxlength="50"
+            [disabled]="saving()"
+            [ngModel]="draft().employeeId"
+            (ngModelChange)="patchDraft({ employeeId: $event })"
+          />
+        </div>
+
+        <div class="field">
+          <label for="j-name">Name <span class="req">*</span></label>
+          <input
+            id="j-name"
+            type="text"
+            maxlength="200"
+            [disabled]="saving()"
+            [ngModel]="draft().name"
+            (ngModelChange)="patchDraft({ name: $event })"
+          />
+        </div>
+
+        <div class="field">
+          <label for="j-designation">Designation</label>
+          <input
+            id="j-designation"
+            type="text"
+            maxlength="200"
+            [disabled]="saving()"
+            [ngModel]="draft().designation"
+            (ngModelChange)="patchDraft({ designation: $event })"
+          />
+        </div>
+
+        <div class="field">
+          <label for="j-department">Department</label>
+          <input
+            id="j-department"
+            type="text"
+            maxlength="200"
+            [disabled]="saving()"
+            [ngModel]="draft().department"
+            (ngModelChange)="patchDraft({ department: $event })"
+          />
+        </div>
+
+        <div class="field">
+          <label for="j-salary">Salary</label>
+          <input
+            id="j-salary"
+            type="text"
+            inputmode="decimal"
+            autocomplete="off"
+            placeholder="e.g. 50,000"
+            [disabled]="saving()"
+            [ngModel]="draft().salary"
+            (ngModelChange)="onAmount('salary', $event)"
+          />
+        </div>
+
+        <div class="field">
+          <label for="j-concern">Concern</label>
+          <div class="with-new">
+            <select
+              id="j-concern"
+              [disabled]="saving()"
+              [ngModel]="draft().concernId"
+              (ngModelChange)="patchDraft({ concernId: $event })"
+            >
+              <option [ngValue]="null">— Select —</option>
+              @for (option of concerns(); track option.id) {
+                <option [ngValue]="option.id">{{ option.name }}</option>
+              }
+            </select>
+            <button class="btn" type="button" [disabled]="saving()" (click)="addConcern()">New</button>
+          </div>
+        </div>
+
+        <div class="field">
+          <label for="j-doj">Date Of Joining</label>
+          <input
+            id="j-doj"
+            type="date"
+            [disabled]="saving()"
+            [ngModel]="draft().dateOfJoining"
+            (ngModelChange)="patchDraft({ dateOfJoining: $event })"
+          />
+        </div>
+
+        <div class="field">
+          <label for="j-probation">Probition Period</label>
+          <input
+            id="j-probation"
+            type="text"
+            maxlength="100"
+            placeholder="e.g. 3 months / 6 months"
+            [disabled]="saving()"
+            [ngModel]="draft().probationPeriod"
+            (ngModelChange)="patchDraft({ probationPeriod: $event })"
+          />
+        </div>
+
+        <div class="field">
+          <label for="j-after-probation">After Probition Salary</label>
+          <input
+            id="j-after-probation"
+            type="text"
+            inputmode="decimal"
+            autocomplete="off"
+            placeholder="e.g. 50,000"
+            [disabled]="saving()"
+            [ngModel]="draft().afterProbationSalary"
+            (ngModelChange)="onAmount('afterProbationSalary', $event)"
+          />
+        </div>
+
+        <!-- <div class="field">
+          <label for="j-effective">Effective Salary</label>
+          <input
+            id="j-effective"
+            type="number"
+            min="0"
+            step="0.01"
+            [disabled]="saving()"
+            [ngModel]="draft().effectiveSalary"
+            (ngModelChange)="patchDraft({ effectiveSalary: $event })"
+          />
+        </div> -->
+        <!-- পরে -->
+<div class="field">
+  <label for="j-effective">Effective Month</label>
+  <input
+    id="j-effective"
+    type="text"
+    maxlength="50"
+    placeholder="e.g. April, May"
+    [disabled]="saving()"
+    [ngModel]="draft().effectiveSalary"
+    (ngModelChange)="patchDraft({ effectiveSalary: $event })"
+  />
+</div>
+
+        <div class="field span-2">
+          <label for="j-remarks">Remarks</label>
+          <textarea
+            id="j-remarks"
+            rows="2"
+            maxlength="1000"
+            [disabled]="saving()"
+            [ngModel]="draft().remarks"
+            (ngModelChange)="patchDraft({ remarks: $event })"
+          ></textarea>
+        </div>
+      </div>
+
+      <footer>
+        <button class="btn" type="button" [disabled]="saving()" (click)="closeEditor()">Cancel</button>
+        <button class="btn btn-primary" type="button" [disabled]="saving()" (click)="save()">
+          {{ saving() ? 'Saving…' : 'Save Entry' }}
+        </button>
+      </footer>
+    </section>
+  </div>
+}

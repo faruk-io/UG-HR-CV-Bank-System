@@ -1,0 +1,82 @@
+<div class="page">
+  <header class="head">
+    <div>
+      <h1>New Interview Evaluation</h1>
+      <p class="sub">Choose the candidate and the interview date. The official form opens ready for filling.</p>
+    </div>
+    <a class="btn" routerLink="/evaluations"><app-icon name="back" /><span>Back to archive</span></a>
+  </header>
+
+  <section class="surface setup">
+    <div class="field search">
+      <label for="term">Find candidate</label>
+      <input
+        id="term"
+        type="search"
+        [ngModel]="term"
+        (ngModelChange)="onTerm($event)"
+        placeholder="Name, code, mobile, email, organization"
+      />
+    </div>
+
+    <div class="field narrow">
+      <label for="date">Interview date</label>
+      <input id="date" type="date" [(ngModel)]="interviewDate" />
+    </div>
+
+    <div class="field narrow">
+      <label for="status">Interview status</label>
+      <select id="status" [(ngModel)]="status">
+        @for (option of statuses; track option.value) {
+          <option [ngValue]="option.value">{{ option.label }}</option>
+        }
+      </select>
+    </div>
+  </section>
+
+  @if (error(); as message) {
+    <p class="banner danger">{{ message }}</p>
+  }
+
+  <section class="surface">
+    <table class="table">
+      <thead>
+        <tr>
+          <th>Code</th>
+          <th>Name</th>
+          <th>Mobile</th>
+          <th>Applied position</th>
+          <th>Organization / Designation</th>
+          <th>CV</th>
+          <th></th>
+        </tr>
+      </thead>
+      <tbody>
+        @for (row of results(); track row.id) {
+          <tr>
+            <td class="code">{{ row.candidateCode }}</td>
+            <td>{{ row.name }}</td>
+            <td>{{ row.mobileNumber ?? '—' }}</td>
+            <td>{{ row.appliedPosition ?? '—' }}</td>
+            <td>
+              <div>{{ row.currentOrganization ?? '—' }}</div>
+              <small>{{ row.currentDesignation ?? '' }}</small>
+            </td>
+            <td>{{ row.hasCv ? 'CV on file' : 'No CV' }}</td>
+            <td class="row-actions">
+              <button class="btn btn-primary" type="button" [disabled]="busy()" (click)="start(row)">
+                Start Evaluation
+              </button>
+            </td>
+          </tr>
+        } @empty {
+          <tr>
+            <td colspan="7" class="empty">
+              {{ busy() ? 'Loading…' : searched() ? 'No candidate found.' : 'Search for a candidate.' }}
+            </td>
+          </tr>
+        }
+      </tbody>
+    </table>
+  </section>
+</div>

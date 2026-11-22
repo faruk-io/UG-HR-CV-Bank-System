@@ -1,0 +1,476 @@
+:host {
+  display: block;
+}
+
+.page {
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+}
+
+.head {
+  display: flex;
+  align-items: flex-end;
+  justify-content: space-between;
+  gap: 1rem;
+  flex-wrap: wrap;
+
+  h1 {
+    margin: 0;
+    font-size: 1.375rem;
+  }
+
+  .sub {
+    margin: 0.15rem 0 0;
+    color: var(--text-muted);
+    font-size: 0.875rem;
+  }
+}
+
+.exports {
+  display: flex;
+  gap: 0.4rem;
+}
+
+.layout {
+  display: grid;
+  grid-template-columns: 15rem minmax(0, 1fr);
+  gap: 1rem;
+  align-items: start;
+
+  @media (max-width: 1100px) {
+    grid-template-columns: minmax(0, 1fr);
+
+    .picker {
+      position: static;
+      flex-direction: row;
+      flex-wrap: wrap;
+      max-height: none;
+    }
+  }
+}
+
+.picker {
+  display: flex;
+  flex-direction: column;
+  gap: 0.15rem;
+  padding: 0.4rem;
+  position: sticky;
+  top: 0.5rem;
+  max-height: calc(100vh - 7rem);
+  overflow: auto;
+
+  .pick {
+    display: flex;
+    align-items: center;
+    gap: 0.55rem;
+    text-align: left;
+    border: 0;
+    background: none;
+    padding: 0.5rem 0.6rem;
+    border-radius: var(--radius-sm);
+    cursor: pointer;
+    font: inherit;
+    font-size: 0.875rem;
+    color: #33415c;
+    transition:
+      background-color 120ms ease,
+      color 120ms ease,
+      box-shadow 120ms ease;
+
+    .pick-icon {
+      color: #7d8ba1;
+      transition: color 120ms ease;
+    }
+
+    &:hover {
+      background: #f2f6fc;
+    }
+
+    &.on {
+      background: var(--accent);
+      color: #fff;
+      font-weight: 600;
+      box-shadow: var(--shadow-sm);
+
+      .pick-icon {
+        color: #fff;
+      }
+    }
+  }
+}
+
+.body {
+  display: flex;
+  flex-direction: column;
+  gap: 0.85rem;
+  min-width: 0;
+}
+
+.caption {
+  h2 {
+    margin: 0;
+    font-size: 1.05rem;
+  }
+
+  p {
+    margin: 0.15rem 0 0;
+    color: var(--text-muted);
+    font-size: 0.85rem;
+  }
+}
+
+.filters-card {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(min(10.5rem, 100%), 1fr));
+  gap: 0.75rem 1rem;
+  padding: 0.9rem 1rem 1rem;
+  align-items: end;
+
+  .filters-head {
+    grid-column: 1 / -1;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 1rem;
+    padding-bottom: 0.65rem;
+    margin-bottom: 0.1rem;
+    border-bottom: 1px solid var(--border);
+
+    h3 {
+      font-size: 0.78rem;
+      font-weight: 700;
+      letter-spacing: 0.06em;
+      text-transform: uppercase;
+      color: #4a5a74;
+    }
+  }
+
+  .field {
+    min-width: 0;
+  }
+
+  input,
+  select {
+    min-width: 0;
+    max-width: 100%;
+  }
+
+  .search {
+    grid-column: span 2;
+    min-width: min(15rem, 100%);
+  }
+
+  .narrow {
+    max-width: 9rem;
+  }
+
+  @media (max-width: 640px) {
+    grid-template-columns: 1fr;
+
+    .search {
+      grid-column: auto;
+    }
+  }
+}
+
+.banner {
+  margin: 0;
+  padding: 0.6rem 0.85rem;
+  border-radius: 4px;
+  font-size: 0.9rem;
+
+  &.danger {
+    background: var(--danger-soft);
+    border: 1px solid #f4c7c3;
+    color: var(--danger);
+  }
+}
+
+.note,
+.hint {
+  margin: 0;
+  color: var(--text-muted);
+  font-size: 0.875rem;
+  padding: 0.2rem 0;
+}
+
+.hint {
+  padding: 0.5rem 0.6rem;
+}
+
+.table-card {
+  overflow: hidden;
+}
+
+.scroll {
+  overflow-x: auto;
+  scrollbar-width: thin;
+}
+
+.table {
+  min-width: max-content;
+
+  td,
+  th {
+    vertical-align: top;
+    padding: 0.45rem 0.7rem;
+    font-size: 0.85rem;
+    white-space: nowrap;
+  }
+
+  &.wide td,
+  &.wide th {
+    font-size: 0.8rem;
+    padding: 0.4rem 0.55rem;
+  }
+
+  th {
+    white-space: nowrap;
+  }
+
+  thead th {
+    background: #f1f5fa;
+    color: #3f4f6a;
+    letter-spacing: 0.02em;
+    border-bottom: 1px solid var(--border-strong);
+  }
+
+  tbody td {
+    background: #fff;
+  }
+
+  tbody tr:nth-child(even) td {
+    background: #fbfcfe;
+  }
+
+  tbody tr:hover td {
+    background: #f2f6fc;
+  }
+
+  /* Long free-text answers are the only cells allowed to break onto new lines. */
+  .wrap {
+    white-space: normal;
+    min-width: 11rem;
+    max-width: 24rem;
+  }
+
+  /* Only the row number stays put; freezing a wide text column would hide the columns next to it. */
+  .idx {
+    position: sticky;
+    left: 0;
+    z-index: 2;
+    width: 2.6rem;
+    min-width: 2.6rem;
+    max-width: 2.6rem;
+    text-align: right;
+    color: var(--text-muted);
+    box-shadow:
+      inset -1px 0 0 var(--border-strong),
+      inset 0 -1px 0 var(--border);
+  }
+
+  thead .idx {
+    z-index: 3;
+    background: #f1f5fa;
+  }
+
+  .num {
+    text-align: right;
+    white-space: nowrap;
+  }
+
+  .day {
+    white-space: nowrap;
+  }
+
+  .empty {
+    text-align: center;
+    color: var(--text-muted);
+    padding: 1.5rem;
+  }
+}
+
+.summary {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  flex-wrap: wrap;
+  padding: 0.6rem 0.9rem;
+  border-top: 1px solid var(--border);
+  background: #fbfcfe;
+  font-size: 0.85rem;
+  color: var(--text-muted);
+
+  .pill {
+    padding: 0.1rem 0.6rem;
+    border-radius: 999px;
+    background: #eef3fb;
+    color: #33415c;
+    font-size: 0.78rem;
+    font-weight: 600;
+    white-space: nowrap;
+  }
+
+  .scroll-hint {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.3rem;
+    margin-left: auto;
+    color: #7d8ba1;
+    font-size: 0.78rem;
+  }
+
+  .warn {
+    color: var(--danger);
+    font-weight: 600;
+    margin-left: auto;
+  }
+}
+
+.print-head {
+  display: none;
+}
+
+@media print {
+  .no-print {
+    display: none !important;
+  }
+
+  .layout {
+    grid-template-columns: minmax(0, 1fr);
+  }
+
+  .print-head {
+    display: block;
+    border-bottom: 1.4pt solid #16233b;
+    padding-bottom: 0.3rem;
+    margin-bottom: 0.55rem;
+
+    .print-row {
+      display: flex;
+      justify-content: space-between;
+      align-items: baseline;
+      gap: 1rem;
+    }
+
+    .print-brand {
+      font-size: 0.95rem;
+      font-weight: 700;
+      color: #16233b;
+      letter-spacing: 0.01em;
+    }
+
+    .print-when,
+    .print-count,
+    .print-desc,
+    .print-filters {
+      color: var(--text-muted);
+      font-size: 0.72rem;
+    }
+
+    .print-count {
+      font-weight: 600;
+    }
+
+    h2 {
+      margin: 0.35rem 0 0;
+      font-size: 1rem;
+    }
+
+    .print-desc,
+    .print-filters {
+      margin: 0.1rem 0 0;
+    }
+  }
+
+  .table td,
+  .table th {
+    font-size: 9pt;
+  }
+
+  .table.wide td,
+  .table.wide th {
+    font-size: 7.5pt;
+  }
+
+  .table th,
+  .table td,
+  .table .num,
+  .table .day {
+    white-space: normal;
+    padding: 0.12rem 0.3rem;
+    overflow-wrap: break-word;
+  }
+
+  thead {
+    display: table-header-group;
+  }
+
+  /* A heading is never cut in the middle of a word; it may only move to the next line. */
+  .table thead th {
+    font-size: 7.2pt;
+    letter-spacing: 0;
+    line-height: 1.15;
+    padding: 0.12rem 0.28rem 0.2rem;
+    border-bottom: 1.2pt solid #64748b;
+    vertical-align: bottom;
+    word-break: keep-all;
+    overflow-wrap: normal;
+    hyphens: none;
+  }
+
+  .table.wide thead th {
+    font-size: 6.6pt;
+  }
+
+  /* Thin vertical rules keep the columns apart even when background graphics are off. */
+  .table td,
+  .table th {
+    border-right: 0.4pt solid #c3cdda;
+  }
+
+  .table td:last-child,
+  .table th:last-child {
+    border-right: 0;
+  }
+
+  .table.wide tbody td {
+    overflow-wrap: anywhere;
+  }
+
+  .table-card,
+  .scroll {
+    overflow: visible;
+  }
+
+  .table {
+    min-width: 0;
+  }
+
+  .table .idx {
+    position: static;
+    left: auto;
+    box-shadow: none;
+    width: auto;
+    min-width: 0;
+    max-width: none;
+  }
+
+  .table .wrap {
+    min-width: 0;
+    max-width: none;
+  }
+
+  .summary {
+    background: none;
+    border-top: 0.8pt solid var(--border-strong);
+  }
+
+  /* The printed header already states the row count and the filters. */
+  .summary .pill,
+  .summary .filters-line,
+  .summary .scroll-hint {
+    display: none;
+  }
+}

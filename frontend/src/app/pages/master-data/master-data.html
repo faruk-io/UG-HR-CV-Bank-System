@@ -1,0 +1,119 @@
+<div class="page">
+  <header class="head">
+    <div>
+      <h1>Master Data</h1>
+      <p class="sub">The dropdown lists used when registering a candidate or completing an evaluation.</p>
+    </div>
+  </header>
+
+  @if (error(); as message) {
+    <p class="banner danger">{{ message }}</p>
+  }
+  @if (notice(); as message) {
+    <p class="banner success">{{ message }}</p>
+  }
+
+  <p class="note">
+    Nothing here is deleted on purpose. Renaming updates every record that already uses the name, and deactivating
+    only stops offering it for new entries — old records keep their value.
+  </p>
+
+  @for (tab of tabs; track tab.kind) {
+    <section class="surface block">
+      <header class="block-head">
+        <h2>{{ tab.title }}</h2>
+        <p class="hint">{{ tab.hint }}</p>
+      </header>
+
+      <div class="add">
+        <input
+          type="text"
+          maxlength="200"
+          [attr.aria-label]="tab.kind === 'concerns' ? 'New concern name' : (tab.kind === 'designations' ? 'New designation name' : 'New job position title')"
+          [placeholder]="tab.kind === 'job-positions' ? 'New position title' : 'New name'"
+          [ngModel]="newNames()[tab.kind]"
+          (ngModelChange)="setNewName(tab.kind, $event)"
+          (keyup.enter)="add(tab.kind)"
+        />
+        <button
+          class="btn btn-primary"
+          type="button"
+          [disabled]="busy() || isNewNameEmpty(tab.kind)"
+          (click)="add(tab.kind)"
+        >
+          <app-icon name="plus" /><span>Add</span>
+        </button>
+      </div>
+
+      <table class="table">
+        <thead>
+          <tr>
+            <th>Name</th>
+            <th>Status</th>
+            <th class="num">Used by</th>
+            <th></th>
+          </tr>
+        </thead>
+        <tbody>
+          @for (item of items(tab.kind); track item.id) {
+            <tr [class.off]="!item.isActive">
+              <td>
+                @if (isRenaming(tab.kind, item.id)) {
+                  <input
+                    #renameInput
+                    class="rename"
+                    type="text"
+                    maxlength="200"
+                    [ngModel]="renameValue()"
+                    (ngModelChange)="renameValue.set($event)"
+                    (keyup.enter)="applyRename()"
+                    (keyup.escape)="cancelRename()"
+                  />
+                } @else {
+                  {{ item.name }}
+                }
+              </td>
+              <td>
+                <span class="badge" [attr.data-on]="item.isActive">
+                  {{ item.isActive ? 'Active' : 'Inactive' }}
+                </span>
+              </td>
+              <td class="num">{{ item.usedByRecords }}</td>
+              <td class="row-actions">
+                @if (isRenaming(tab.kind, item.id)) {
+                  <button
+                    class="btn btn-primary"
+                    type="button"
+                    [disabled]="busy() || !renameValue().trim()"
+                    (click)="applyRename()"
+                  >
+                    Save name
+                  </button>
+                  <button class="btn" type="button" (click)="cancelRename()">Cancel</button>
+                } @else {
+                  <button class="btn" type="button" [disabled]="busy()" (click)="startRename(tab.kind, item)">
+                    Rename
+                  </button>
+                  <button
+                    class="btn"
+                    type="button"
+                    [disabled]="busy()"
+                    (click)="toggleActive(tab.kind, item)"
+                  >
+                    {{ item.isActive ? 'Deactivate' : 'Activate' }}
+                  </button>
+                }
+              </td>
+            </tr>
+          } @empty {
+            <tr>
+              <td colspan="4" class="empty">
+                {{ loading() ? 'Loading…' : 'Nothing in this list yet. Type a name above and press Add.' }}
+              </td>
+            </tr>
+          }
+        </tbody>
+      </table>
+    </section>
+  }
+</div>

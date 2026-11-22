@@ -1,0 +1,175 @@
+<div class="page">
+  <header class="head">
+    <div>
+      <h1>Dashboard</h1>
+      <p class="sub">CV Bank and interview overview for {{ auth.currentUser()?.fullName }}</p>
+    </div>
+    <div class="quick">
+      <button class="btn" type="button" (click)="refresh()" [disabled]="loading()">
+        <app-icon name="refresh" /><span>{{ loading() ? 'Loading…' : 'Refresh' }}</span>
+      </button>
+      @if (auth.can('candidate.create')) {
+        <a class="btn btn-primary" routerLink="/candidates/new">
+          <app-icon name="plus" /><span>Add Candidate</span>
+        </a>
+      }
+      <a class="btn" routerLink="/candidates"><app-icon name="file-text" /><span>CV Bank</span></a>
+    </div>
+  </header>
+
+  @if (error()) {
+    <p class="banner danger">{{ error() }}</p>
+  }
+
+  <section class="cards">
+    @for (card of cards(); track card.label) {
+      <div class="surface card" [attr.data-tone]="card.tone">
+        <span class="chip"><app-icon [name]="card.icon" /></span>
+        <span class="body">
+          <span class="value">{{ card.value }}</span>
+          <span class="label">{{ card.label }}</span>
+          <span class="hint">{{ card.hint }}</span>
+        </span>
+      </div>
+    } @empty {
+      <div class="surface card placeholder">Loading summary…</div>
+    }
+  </section>
+
+  <div class="grid">
+    <section class="surface panel">
+      <div class="panel-head">
+        <h2>Recent Candidates</h2>
+      </div>
+      <table class="table">
+        <thead>
+          <tr>
+            <th>Name</th>
+            <th>Position</th>
+            <th>Status</th>
+            <th>Added</th>
+          </tr>
+        </thead>
+        <tbody>
+          @for (row of recentCandidates(); track row.id) {
+            <tr>
+              <td>
+                <a class="link" [routerLink]="['/candidates', row.id]">{{ row.name }}</a>
+                <div class="code">{{ row.candidateCode }}</div>
+              </td>
+              <td>{{ row.appliedPosition || '-' }}</td>
+              <td><span class="badge" [attr.data-status]="row.status">{{ statusLabel(row.status) }}</span></td>
+              <td>{{ row.createdAtUtc | date: 'mediumDate' }}</td>
+            </tr>
+          } @empty {
+            <tr>
+              <td colspan="4" class="empty">No candidates yet.</td>
+            </tr>
+          }
+        </tbody>
+      </table>
+    </section>
+
+    <section class="surface panel">
+      <div class="panel-head">
+        <h2>Recent Interviews</h2>
+      </div>
+      <table class="table">
+        <thead>
+          <tr>
+            <th>Candidate</th>
+            <th>Interview</th>
+            <th>Date</th>
+            <th>Decision</th>
+          </tr>
+        </thead>
+        <tbody>
+          @for (row of recentInterviews(); track row.id) {
+            <tr>
+              <td>
+                <a class="link" [routerLink]="['/candidates', row.candidateId]">{{ row.candidateName }}</a>
+                <div class="code">{{ row.candidateCode }}</div>
+              </td>
+              <td>{{ row.interviewNumber }} · {{ interviewStatusLabel(row.status) }}</td>
+              <td>{{ row.interviewDate | date: 'mediumDate' }}</td>
+              <td>{{ decisionLabel(row.decision) }}</td>
+            </tr>
+          } @empty {
+            <tr>
+              <td colspan="4" class="empty">
+                No interview records yet. Evaluation forms are added in the Interview Evaluation module.
+              </td>
+            </tr>
+          }
+        </tbody>
+      </table>
+    </section>
+  </div>
+
+  <div class="grid">
+    <section class="surface panel">
+      <div class="panel-head head-row">
+        <h2>Joining List</h2>
+        <span class="count">{{ totalJoining() }}</span>
+        <a class="btn" routerLink="/joining">View all</a>
+      </div>
+      <table class="table">
+        <thead>
+          <tr>
+            <th>Name</th>
+            <th>Employee ID</th>
+            <th>Joined</th>
+          </tr>
+        </thead>
+        <tbody>
+          @for (row of recentJoining(); track row.id) {
+            <tr>
+              <td>
+                {{ row.name }}
+                @if (row.designation) {
+                  <div><small>{{ row.designation }}</small></div>
+                }
+              </td>
+              <td>{{ row.employeeId || '-' }}</td>
+              <td>{{ row.dateOfJoining ? (row.dateOfJoining | date: 'mediumDate') : '-' }}</td>
+            </tr>
+          } @empty {
+            <tr>
+              <td colspan="3" class="empty">No joining entries yet.</td>
+            </tr>
+          }
+        </tbody>
+      </table>
+    </section>
+
+    <section class="surface panel">
+      <div class="panel-head head-row">
+        <h2>Resigned List</h2>
+        <span class="count">{{ totalResigned() }}</span>
+        <a class="btn" routerLink="/resigned">View all</a>
+      </div>
+      <table class="table">
+        <thead>
+          <tr>
+            <th>Name</th>
+            <th>Employee ID</th>
+            <th>Resign Date</th>
+          </tr>
+        </thead>
+        <tbody>
+          @for (row of recentResigned(); track row.id) {
+            <tr>
+              <td>{{ row.name }}</td>
+              <td>{{ row.employeeId || '-' }}</td>
+              <td>{{ row.resignDate ? (row.resignDate | date: 'mediumDate') : '-' }}</td>
+            </tr>
+          } @empty {
+            <tr>
+              <td colspan="3" class="empty">No resigned entries yet.</td>
+            </tr>
+          }
+        </tbody>
+      </table>
+    </section>
+  </div>
+</div>
